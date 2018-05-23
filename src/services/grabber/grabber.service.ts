@@ -4,19 +4,29 @@ import {BelkaCarGrabberService} from './belkacar/belkacarGrabber.sevice';
 
 import {ICommonCar} from '../../models/cars/ICommonCar';
 
+export interface IGrabberMap {
+    [carsharing: string]: IGrabberService;
+}
+
 export interface IGrabberService {
     getCars(): Observable<ICommonCar[]>
 }
 
 export class GrabberService implements IGrabberService {
-    private delimobilGrabberService = new DelimobilGrabberService();
-    private belkaCarGrabberService = new BelkaCarGrabberService();
+    private carsharings: string[];
+    private grabber: IGrabberMap = {
+        delimobil: new DelimobilGrabberService(),
+        belkacar: new BelkaCarGrabberService()
+    };
+
+    constructor(carsharings = ['delimobil', 'belkacar']) {
+        this.carsharings = carsharings;
+    }
 
     getCars(): Observable<ICommonCar[]> {
-        const delimobil$ = this.delimobilGrabberService.getCars();
-        const belka$ = this.belkaCarGrabberService.getCars();
+        const streams$ = this.carsharings.map(name => this.grabber[name].getCars());
 
-        return Observable.zip(delimobil$, belka$)
+        return Observable.zip(...streams$)
             .map(commonCarArrays => Array.prototype.concat.apply([], commonCarArrays));
     }
 }
