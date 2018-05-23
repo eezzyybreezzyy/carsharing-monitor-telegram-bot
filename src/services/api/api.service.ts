@@ -17,7 +17,13 @@ export class APIService implements IAPIService {
                     observer.error(`Error: ${resp.statusCode}`);
                 }
 
-                const body = <T>JSON.parse(resp.body);
+                let body: T;
+
+                try {
+                    body = JSON.parse(resp.body);
+                } catch (err) {
+                    body = resp.body;
+                }
 
                 observer.next(body);
                 observer.complete();

@@ -1,7 +1,7 @@
 import {IDelimobilCar} from '../../../models/cars/IDelimobilCar';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
-export function delimobilCarsToCommonCars(cars: IDelimobilCar[]): ICommonCar[] {
+export function toCommonCars(cars: IDelimobilCar[]): ICommonCar[] {
     return cars.map(car =>
         ({
             company: 'Делимобиль',
