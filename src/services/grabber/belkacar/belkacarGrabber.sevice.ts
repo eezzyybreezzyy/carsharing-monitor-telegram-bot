@@ -10,7 +10,11 @@ import {parsePage, toCommonCars} from './utils';
 const BELKA_CAR_API_URL = 'https://belkacar.ru/map';
 
 export class BelkaCarGrabberService {
-    private apiService = new APIService();
+    private apiService: APIService;
+
+    constructor() {
+        this.apiService = APIService.instance();
+    }
 
     getCars(): Observable<ICommonCar[]> {
         return this.apiService.get<IBelkaCarAPIResponse>(BELKA_CAR_API_URL)

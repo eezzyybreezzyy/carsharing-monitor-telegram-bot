@@ -9,11 +9,12 @@ import {ICommonCar} from '../models/cars/ICommonCar';
 import {IGeolocation} from '../models/IGeolocation';
 
 export class CarsharingMonitorBot {
+    private grabber: GrabberService;
     private bot: TelegramBot;
-    private grabberService = new GrabberService();
 
-    constructor(token: string) {
-        this.bot = new TelegramBot(token, {polling: true});
+    constructor(token: string, options?: TelegramBot.ConstructorOptions) {
+        this.bot = new TelegramBot(token, options);
+        this.grabber = new GrabberService();
     }
 
     start() {
@@ -59,7 +60,7 @@ export class CarsharingMonitorBot {
     }
 
     showNearestCar(chatId, userLocation) {
-        this.grabberService.getCars()
+        this.grabber.getCars()
             .map(cars => getNearestCar(cars, userLocation))
             .subscribe(car => {
                 const {company, model, distance, fuel, urlSchema, latitude, longitude} = car;
@@ -79,7 +80,7 @@ export class CarsharingMonitorBot {
         const poll = new PollingService();
 
         poll.start()
-        this.grabberService.getCars()
+        this.grabber.getCars()
             .then(cars => Car.getInRadius(cars, userLocation, radius))
             .then(cars => {
                 // убирать из списка авто из cancelled

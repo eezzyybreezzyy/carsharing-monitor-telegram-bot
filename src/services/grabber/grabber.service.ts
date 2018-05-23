@@ -1,10 +1,15 @@
 import {Observable} from 'rxjs/Rx';
-import {DelimobilGrabberService} from './delimobil/delimobilGrabber.service';
 import {BelkaCarGrabberService} from './belkacar/belkacarGrabber.sevice';
+import {DelimobilGrabberService} from './delimobil/delimobilGrabber.service';
+import {LifCarGrabberService} from './lifcar/lifcarGrabber.service';
+import {TimCarGrabberService} from './timcar/timcarGrabber.service';
+import {YouDriveGrabberService} from './youdrive/youDriveGrabber.service';
 
 import {ICommonCar} from '../../models/cars/ICommonCar';
 
-export interface IGrabberMap {
+const CARSHARINGS = ['belkacar', 'delimobil', 'lifcar', 'timcar', 'youdrive'];
+
+export interface IGrabberServiceMap {
     [carsharing: string]: IGrabberService;
 }
 
@@ -13,14 +18,16 @@ export interface IGrabberService {
 }
 
 export class GrabberService implements IGrabberService {
-    private carsharings: string[];
-    private grabber: IGrabberMap = {
-        delimobil: new DelimobilGrabberService(),
-        belkacar: new BelkaCarGrabberService()
-    };
+    private grabber: IGrabberServiceMap;
 
-    constructor(carsharings = ['delimobil', 'belkacar']) {
-        this.carsharings = carsharings;
+    constructor(private carsharings: string[] = CARSHARINGS) {
+        this.grabber = {
+            belkacar: new BelkaCarGrabberService(),
+            delimobil: new DelimobilGrabberService(),
+            lifcar: new LifCarGrabberService(),
+            timcar: new TimCarGrabberService(),
+            youdrive: new YouDriveGrabberService()
+        };
     }
 
     getCars(): Observable<ICommonCar[]> {

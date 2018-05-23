@@ -1,27 +1,24 @@
 import {Observable, Subject} from 'rxjs/Rx';
 
 export interface IPollingService {
-    start(observable: Observable<any>, interval: number): Observable<any>;
+    start(interval: number): Observable<any>;
     stop(): void;
 }
 
 export class PollingService implements IPollingService {
-    private stop$ = new Subject<void>();
+    private stop$: Subject<void>;
 
-    /*
-    start(callback: () => Observable<any>, interval: number): Observable<any> {
-        return Observable.timer(0, interval)
-                         .switchMap(callback)
-                         .takeUntil(this.stop$.asObservable());
+    constructor(private observable: Observable<any>) {
+        this.observable = observable;
+        this.stop$ = new Subject<void>();
     }
-    */
 
-    start(observable: Observable<any>, interval: number = 500): Observable<any> {
-        return observable
-            .delay(interval)
-            .repeat()
-            .retry()
-            .takeUntil(this.stop$.asObservable());
+    start(interval: number = 500): Observable<any> {
+        return this.observable
+                   .delay(interval)
+                   .repeat()
+                   .retry()
+                   .takeUntil(this.stop$.asObservable());
     }
 
     stop() {

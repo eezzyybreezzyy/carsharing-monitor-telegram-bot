@@ -21,7 +21,7 @@ export function toCommonCars(cars: IBelkaCar[]): ICommonCar[] {
             id: car.id,
             model: car.model,
             // переводить км до заправки в бензин
-            fuel: car.no_refill_distance.toString(),
+            fuel: car.no_refill_distance,
             latitude: car.latitude,
             longitude: car.longitude,
             urlSchema: `belkacar://cars/${car.id}`

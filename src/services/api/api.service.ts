@@ -6,6 +6,8 @@ export interface IAPIService {
 }
 
 export class APIService implements IAPIService {
+    private static apiServiceInstance: APIService = null;
+
     get<T>(url: string): Observable<T> {
         return Observable.create((observer: Observer<T>) => {
             request.get(url, (err, resp) => {
@@ -29,5 +31,13 @@ export class APIService implements IAPIService {
                 observer.complete();
             });
         });
+    }
+
+    static instance(): APIService {
+        if (this.apiServiceInstance == null) {
+            this.apiServiceInstance = new APIService();
+        }
+        
+        return this.apiServiceInstance
     }
 }

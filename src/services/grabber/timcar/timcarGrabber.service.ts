@@ -2,14 +2,14 @@ import {Observable} from 'rxjs/Rx';
 import {APIService} from '../../api/api.service';
 import {IGrabberService} from '../grabber.service';
 
-import {IDelimobilAPIResponse} from '../../../models/apiResponses/IDelimobilAPIResponse';
+import {ITimCarAPIResponse} from '../../../models/apiResponses/ITimCarAPIResponse';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
 import {toCommonCars} from './utils';
 
-const DELIMOBIL_API_URL = 'https://delimobil.ru/maps-data?action=cars&alias=ru';
+const TIM_CAR_API = 'https://service.timcar.ru/api/cars';
 
-export class DelimobilGrabberService implements IGrabberService {
+export class TimCarGrabberService implements IGrabberService {
     private apiService: APIService;
 
     constructor() {
@@ -17,7 +17,7 @@ export class DelimobilGrabberService implements IGrabberService {
     }
 
     getCars(): Observable<ICommonCar[]> {
-        return this.apiService.get<IDelimobilAPIResponse>(DELIMOBIL_API_URL)
-            .map(resp => toCommonCars(resp.features));
+        return this.apiService.get<ITimCarAPIResponse>(TIM_CAR_API)
+            .map(resp => toCommonCars(resp.cars));
     }
 }

@@ -2,11 +2,12 @@
   "name": "carsharing-monitor-telegram-bot",
   "version": "0.0.1",
   "description": "Телеграм бот для мониторинга свободных каршеринговых автомобилей",
-  "main": "lib/index",
-  "types": "lib/index",
+  "main": "dist/index",
+  "types": "dist/index",
   "scripts": {
     "start": "npm run build:live",
-    "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./src/index.ts"
+    "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./src/index.ts",
+    "clean": "rm -rf ./node_modules && npm cache clean --force"
   },
   "keywords": [
     "carsharing",
@@ -20,12 +21,12 @@
     "@types/node-telegram-bot-api": "^0.28.3",
     "@types/request": "^2.47.0",
     "nodemon": "^1.17.4",
-    "ts-node": "^6.0.3",
-    "typescript": "^2.8.3"
+    "ts-node": "^6.0.3"
   },
   "dependencies": {
-    "node-telegram-bot-api": "^0.30.0",
+    "typescript": "^2.8.3",
+    "rxjs": "5.5.1",
     "request": "^2.87.0",
-    "rxjs": "5.5.1"
+    "node-telegram-bot-api": "^0.30.0"
   }
 }
