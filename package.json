@@ -2,9 +2,11 @@
   "name": "carsharing-monitor-telegram-bot",
   "version": "0.0.1",
   "description": "Телеграм бот для мониторинга свободных каршеринговых автомобилей",
-  "main": "src/index.js",
+  "main": "lib/index",
+  "types": "lib/index",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "npm run build:live",
+    "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./src/index.ts"
   },
   "keywords": [
     "carsharing",
@@ -13,12 +15,17 @@
   ],
   "author": "daniil.nazarov@phystech.edu",
   "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^10.1.2",
+    "@types/node-telegram-bot-api": "^0.28.3",
+    "@types/request": "^2.47.0",
+    "nodemon": "^1.17.4",
+    "ts-node": "^6.0.3",
+    "typescript": "^2.8.3"
+  },
   "dependencies": {
     "node-telegram-bot-api": "^0.30.0",
-    "request": "^2.86.0",
-    "telegram-keyboard-wrapper": "^1.0.1"
-  },
-  "devDependencies": {
-    "nodemon": "^1.17.4"
+    "request": "^2.87.0",
+    "rxjs": "5.5.1"
   }
 }
