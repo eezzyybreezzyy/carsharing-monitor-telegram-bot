@@ -1,7 +1,7 @@
 import {Observable} from 'rxjs/Rx';
 import {APIService} from '../../api/api.service';
-import {IGrabberService} from '../grabber.service';
 
+import {IGrabberService} from '../../../models/grabber/IGrabberService';
 import {IDelimobilAPIResponse} from '../../../models/apiResponses/IDelimobilAPIResponse';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 

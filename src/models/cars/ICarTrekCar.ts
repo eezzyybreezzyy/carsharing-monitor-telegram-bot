@@ -1,4 +1,5 @@
-export interface ITimCar {
+// много лишних моделей
+export interface ICarTrekCar {
     Id: string;
     Color: string;
     RegNumber: string;
@@ -8,17 +9,17 @@ export interface ITimCar {
     Lon: number;
     FuelLevel: number;
     Distance: number;
-    CarModel: ITimCarModel;
+    CarModel: ICarTrekModel;
     ModelId: string;
     ModelImageId: string;
     Brand: string;
     Model: string;
     TransmissionType: number;
     Discount: number;
-    Rate: ITimCarRate;
+    Rate: ICarTrekRate;
 }
 
-export interface ITimCarModel {
+export interface ICarTrekModel {
     Id: string
     Brand: string;
     ModelName: string;
@@ -36,7 +37,7 @@ export interface ITimCarModel {
     MapMarkerIconId: string;
 }
 
-export interface ITimCarRate {
+export interface ICarTrekRate {
     ParkPrice: number;
     DrivePrice: number;
 }

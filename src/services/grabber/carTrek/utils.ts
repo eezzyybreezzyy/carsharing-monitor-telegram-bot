@@ -1,7 +1,7 @@
-import {ITimCar} from '../../../models/cars/ITimCar';
+import {ICarTrekCar} from '../../../models/cars/ICarTrekCar';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
-export function toCommonCars(cars: ITimCar[]): ICommonCar[] {
+export function toCommonCars(name: string, cars: ICarTrekCar[]): ICommonCar[] {
     // часть данных (RegNumber, FuelLevel) не приходят, хотя видна на сайте
     return cars.map(car =>
         ({
