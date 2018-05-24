@@ -8,12 +8,11 @@ export interface IPollingService {
 export class PollingService implements IPollingService {
     private stop$: Subject<void>;
 
-    constructor(private observable: Observable<any>) {
-        this.observable = observable;
-        this.stop$ = new Subject<void>();
-    }
+    constructor(private observable: Observable<any>) {}
 
     start(interval: number = 500): Observable<any> {
+        this.stop$ = new Subject<void>();
+
         return this.observable
                    .delay(interval)
                    .repeat()
