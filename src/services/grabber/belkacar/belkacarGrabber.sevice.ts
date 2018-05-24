@@ -5,9 +5,8 @@ import {IGrabberService} from '../../../models/grabber/IGrabberService';
 import {IBelkaCarAPIResponse} from '../../../models/apiResponses/IBelkaCarAPIResponse';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
+import {apiUrl} from '../config';
 import {parsePage, toCommonCars} from './utils';
-
-const BELKA_CAR_API_URL = 'https://belkacar.ru/map';
 
 export class BelkaCarGrabberService {
     private apiService: APIService;
@@ -17,7 +16,7 @@ export class BelkaCarGrabberService {
     }
 
     getCars(): Observable<ICommonCar[]> {
-        return this.apiService.get<IBelkaCarAPIResponse>(BELKA_CAR_API_URL)
+        return this.apiService.get<IBelkaCarAPIResponse>(apiUrl.belkacar)
             .map(html => parsePage(html))
             .map(cars => toCommonCars(cars));
     }

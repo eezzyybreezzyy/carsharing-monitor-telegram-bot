@@ -5,9 +5,8 @@ import {IGrabberService} from '../../../models/grabber/IGrabberService';
 import {IYouDriveAPIResponse} from '../../../models/apiResponses/IYouDriveAPIResponse';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
+import {apiUrl} from '../config';
 import {toCommonCars} from './utils';
-
-const YOU_DRIVE_API_URL = 'https://youdrive.today/info';
 
 export class YouDriveGrabberService implements IGrabberService {
     private apiService: APIService;
@@ -17,7 +16,7 @@ export class YouDriveGrabberService implements IGrabberService {
     }
 
     getCars(): Observable<ICommonCar[]> {
-        return this.apiService.get<IYouDriveAPIResponse>(YOU_DRIVE_API_URL)
+        return this.apiService.get<IYouDriveAPIResponse>(apiUrl.youdrive)
             .map(resp => toCommonCars(resp.cars));
     }
 }

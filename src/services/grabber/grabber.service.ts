@@ -16,7 +16,7 @@ export class GrabberService implements IGrabberService {
 
     getCars(): Observable<ICommonCar[]> {
         const streams$ = this.carsharings.map(name => {
-            return this.grabberFactory.create(name).getCars()
+            return this.grabberFactory.create(name).getCars();
         });
 
         return Observable.zip(...streams$)

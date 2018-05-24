@@ -5,11 +5,9 @@ import {IGrabberService} from '../../../models/grabber/IGrabberService';
 import {ILifCarAPIResponse} from '../../../models/apiResponses/ILifCarAPIResponse';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
+import {apiUrl} from '../config';
 import {toCommonCars} from './utils';
 
-const LIF_CAR_API = 'https://api.lifcar.ru/api/car/get-cars';
-
-// Для Карусели так же
 export class LifCarGrabberService implements IGrabberService {
     private apiService: APIService;
 
@@ -18,7 +16,7 @@ export class LifCarGrabberService implements IGrabberService {
     }
 
     getCars(): Observable<ICommonCar[]> {
-        return this.apiService.get<ILifCarAPIResponse>(LIF_CAR_API)
+        return this.apiService.get<ILifCarAPIResponse>(apiUrl.lifcar)
             .map(resp => toCommonCars(resp.data.cars));
     }
 }
