@@ -1,4 +1,4 @@
-export const apiUrl = {
+export default {
     anytime: 'https://app.anytimecar.ru/data/v3.9.5/info',
     belkacar: 'https://belkacar.ru/map',
     timcar: 'https://service.timcar.ru/api/cars', // Москва

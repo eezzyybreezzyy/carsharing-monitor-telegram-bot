@@ -5,8 +5,9 @@ import {IGrabberService} from '../../../models/grabber/IGrabberService';
 import {ICar5APIResponse} from '../../../models/apiResponses/ICar5APIResponse';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
-import {apiUrl} from '../config';
 import {toCommonCars} from './utils';
+
+import apiUrl from '../../api/config';
 
 export class Car5GrabberService implements IGrabberService {
     private apiService: APIService;

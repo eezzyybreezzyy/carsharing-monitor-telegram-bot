@@ -1,5 +1,5 @@
 import {Observable} from 'rxjs/Rx';
-import {GrabberServiceFactory} from './grabberServiceFactory';
+import {GrabberServiceFactory} from './grabber.service.factory';
 
 import {IGrabberService} from '../../models/grabber/IGrabberService';
 import {IGrabberServiceFactory} from '../../models/grabber/IGrabberServiceFactory';

@@ -5,8 +5,9 @@ import {IGrabberService} from '../../../models/grabber/IGrabberService';
 import {IRentmeeAPIResponse} from '../../../models/apiResponses/IRentmeeAPIResponse';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
-import {apiUrl} from '../config';
 import {parseXml, toCommonCars} from './utils';
+
+import apiUrl from '../../api/config';
 
 export class RentmeeGrabberService {
     private apiService: APIService;

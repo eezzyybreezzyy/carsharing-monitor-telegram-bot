@@ -5,8 +5,9 @@ import {IGrabberService} from '../../../models/grabber/IGrabberService';
 import {IBelkaCarAPIResponse} from '../../../models/apiResponses/IBelkaCarAPIResponse';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
-import {apiUrl} from '../config';
 import {parsePage, toCommonCars} from './utils';
+
+import apiUrl from '../../api/config';
 
 export class BelkaCarGrabberService {
     private apiService: APIService;

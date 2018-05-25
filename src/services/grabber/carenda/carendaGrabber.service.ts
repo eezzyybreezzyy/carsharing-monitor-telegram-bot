@@ -6,8 +6,9 @@ import {ICarendaAPICarsResponse, ICarendaAPICarInfoResponse} from '../../../mode
 import {ICarendaCarExtended} from '../../../models/cars/ICarendaCar';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
-import {apiUrl} from '../config';
 import {toCommonCars} from './utils';
+
+import apiUrl from '../../api/config';
 
 export class CarendaGrabberService implements IGrabberService {
     private apiService: APIService;
