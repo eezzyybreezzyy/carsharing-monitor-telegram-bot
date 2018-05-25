@@ -5,7 +5,9 @@ import {IGrabberService} from '../../models/grabber/IGrabberService';
 import {IGrabberServiceFactory} from '../../models/grabber/IGrabberServiceFactory';
 import {ICommonCar} from '../../models/cars/ICommonCar';
 
-const CARSHARINGS = ['belkacar', 'delimobil', 'lifcar', 'timcar', 'matreshcar', 'maturcar', 'urentcar', 'drivetime', 'getmancar', 'youdrive'];
+import apiUrl from '../api/config';
+
+const CARSHARINGS = Object.keys(apiUrl);
 
 export class GrabberService implements IGrabberService {
     private grabberFactory: IGrabberServiceFactory;
@@ -20,10 +22,22 @@ export class GrabberService implements IGrabberService {
                        .catch(err => Observable.of(err));
         });
 
-        // теперь если один из наблюдателей упадет, zip не упадет (для поллинга актуально)
-        // но значение упавшего вернет ошибку из APIService
-        // TODO: отфильтровать commonCarArrays здесь или в самом боте (мб сообщать юзеру)
-        return Observable.zip(...streams$)
-            .map(commonCarArrays => Array.prototype.concat.apply([], commonCarArrays));
+        return Observable.zip<ICommonCar[]>(...streams$)
+            .map(arrays => this.handleAndRemoveErrors(arrays))
+            .map(arrays => this.concatArrays(arrays));
+    }
+
+    private handleAndRemoveErrors(arrays: ICommonCar[][]) {
+        return arrays.filter((item, index) => {
+            if (item instanceof Array) {
+                return item;
+            };
+            
+            console.log(`${this.carsharings[index]}: ${item}`);
+        });
+    }
+
+    private concatArrays(arrays: ICommonCar[][]): ICommonCar[] {
+        return Array.prototype.concat.apply([], arrays);
     }
 }

@@ -9,6 +9,7 @@ import {toCommonCars} from './utils';
 
 import apiUrl from '../../api/config';
 
+// Добавить и объеденить с каруселью
 export class LifCarGrabberService implements IGrabberService {
     private apiService: APIService;
 

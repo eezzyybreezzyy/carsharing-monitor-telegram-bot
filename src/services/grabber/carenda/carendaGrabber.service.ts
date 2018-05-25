@@ -10,6 +10,24 @@ import {toCommonCars} from './utils';
 
 import apiUrl from '../../api/config';
 
+// для easyride
+// const options ={
+//     headers: {
+//         'Host': 'easyride.rightech.io',
+//         'Content-Type': 'application/x-www-form-urlencoded',
+//         'Accept': '*/*',
+//         'Connection': 'keep-alive',
+//         'Accept-Encoding': 'gzip;q=1.0, compress;q=0.5',
+//         'User-Agent': 'EasyRide/2.11 (ru.cariot.easyride; build:3; iOS 11.4.0) Alamofire/4.6.0',
+//         'x-app-version': 'ios/2.11',
+//         'Accept-Language': 'ru-RU;q=1.0, en-RU;q=0.9, ja-JP;q=0.8'
+//     },
+//     auth: {
+//         bearer: 'ESzy5N-HLlBPTDxqOqUUpZg6tazCOKAP'
+//     }
+// };
+
+// объеденить с EasyRide
 export class CarendaGrabberService implements IGrabberService {
     private apiService: APIService;
 

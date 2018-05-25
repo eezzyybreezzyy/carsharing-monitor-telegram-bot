@@ -8,9 +8,9 @@ export interface IAPIService {
 export class APIService implements IAPIService {
     private static apiServiceInstance: APIService = null;
 
-    get<T>(url: string): Observable<T> {
+    get<T>(url: string, options?: request.CoreOptions): Observable<T> {
         return Observable.create((observer: Observer<T>) => {
-            request.get(url, (err, resp) => {
+            request.get(url, options, (err, resp) => {
                 if (err) {
                     observer.error(err);
                 } else if (resp.statusCode !== 200) {
@@ -37,6 +37,6 @@ export class APIService implements IAPIService {
             this.apiServiceInstance = new APIService();
         }
 
-        return this.apiServiceInstance
+        return this.apiServiceInstance;
     }
 }

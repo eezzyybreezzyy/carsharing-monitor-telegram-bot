@@ -6,6 +6,7 @@ import {CarTrekGrabberService} from './carTrek/carTrekGrabber.service';
 import {DelimobilGrabberService} from './delimobil/delimobilGrabber.service';
 import {LifCarGrabberService} from './lifcar/lifcarGrabber.service';
 import {RentmeeGrabberService} from './rentmee/rentmeeGrabber.service';
+import {YandexDriveGrabberService} from './yandexDrive/yandexDriveGrabber.service';
 import {YouDriveGrabberService} from './youdrive/youDriveGrabber.service';
 
 import {IGrabberService} from '../../models/grabber/IGrabberService';
@@ -21,6 +22,7 @@ export class GrabberServiceFactory implements IGrabberServiceFactory {
             case 'car5':
                 return new Car5GrabberService();
             case 'carenda':
+            case 'easyride':
                 return new CarendaGrabberService();
             case 'timcar':
             case 'matreshcar':
@@ -31,10 +33,13 @@ export class GrabberServiceFactory implements IGrabberServiceFactory {
                 return new CarTrekGrabberService(name);
             case 'delimobil':
                 return new DelimobilGrabberService();
+            case 'carusel':
             case 'lifcar':
                 return new LifCarGrabberService();
             case 'rentmee':
                 return new RentmeeGrabberService();
+            case 'yandexdrive':
+                return new YandexDriveGrabberService();
             case 'youdrive':
                 return new YouDriveGrabberService();
             default: return null;
