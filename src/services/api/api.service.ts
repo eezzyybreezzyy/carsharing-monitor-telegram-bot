@@ -13,21 +13,20 @@ export class APIService implements IAPIService {
             request.get(url, (err, resp) => {
                 if (err) {
                     observer.error(err);
-                }
-
-                if (resp.statusCode !== 200) {
+                } else if (resp.statusCode !== 200) {
                     observer.error(`Error: ${resp.statusCode}`);
+                } else {
+                    let body: T;
+
+                    try {
+                        body = JSON.parse(resp.body);
+                    } catch (err) {
+                        body = resp.body;
+                    }
+
+                    observer.next(body);
                 }
 
-                let body: T;
-
-                try {
-                    body = JSON.parse(resp.body);
-                } catch (err) {
-                    body = resp.body;
-                }
-
-                observer.next(body);
                 observer.complete();
             });
         });
@@ -37,7 +36,7 @@ export class APIService implements IAPIService {
         if (this.apiServiceInstance == null) {
             this.apiServiceInstance = new APIService();
         }
-        
+
         return this.apiServiceInstance
     }
 }

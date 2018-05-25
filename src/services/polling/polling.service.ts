@@ -21,6 +21,8 @@ export class PollingService implements IPollingService {
     }
 
     stop() {
-        this.stop$.next();
+        if (this.stop$) {
+            this.stop$.next();
+        }
     }
 }

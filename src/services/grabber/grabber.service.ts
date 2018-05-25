@@ -16,9 +16,13 @@ export class GrabberService implements IGrabberService {
 
     getCars(): Observable<ICommonCar[]> {
         const streams$ = this.carsharings.map(name => {
-            return this.grabberFactory.create(name).getCars();
+            return this.grabberFactory.create(name).getCars()
+                       .catch(err => Observable.of(err));
         });
 
+        // теперь если один из наблюдателей упадет, zip не упадет (для поллинга актуально)
+        // но значение упавшего вернет ошибку из APIService
+        // TODO: отфильтровать commonCarArrays здесь или в самом боте (мб сообщать юзеру)
         return Observable.zip(...streams$)
             .map(commonCarArrays => Array.prototype.concat.apply([], commonCarArrays));
     }

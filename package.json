@@ -20,13 +20,15 @@
     "@types/node": "^10.1.2",
     "@types/node-telegram-bot-api": "^0.28.3",
     "@types/request": "^2.47.0",
+    "@types/xml2js": "^0.4.2",
     "nodemon": "^1.17.4",
     "ts-node": "^6.0.3"
   },
   "dependencies": {
-    "typescript": "^2.8.3",
-    "rxjs": "5.5.1",
+    "node-telegram-bot-api": "^0.30.0",
     "request": "^2.87.0",
-    "node-telegram-bot-api": "^0.30.0"
+    "rxjs": "5.5.1",
+    "typescript": "^2.8.3",
+    "xml2js": "^0.4.19"
   }
 }
