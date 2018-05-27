@@ -20,7 +20,11 @@ export function parseXml(xml: string): Observable<IRentmeeCar[]> {
                 observer.error(err);
             }
 
-            observer.next(result.carlist.car);
+            const cars = result.carlist.car instanceof Array
+                       ? result.carlist.car
+                       : [result.carlist.car];
+
+            observer.next(cars);
         });
     });
 }

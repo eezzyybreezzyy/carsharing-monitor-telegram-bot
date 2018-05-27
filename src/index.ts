@@ -10,7 +10,6 @@ const args = process.argv.slice(2);
 switch (args[0]) {
     case 'proxy':
         options.request = {proxy: args[1]} as Options;
-
         break;
     default: break;
 }

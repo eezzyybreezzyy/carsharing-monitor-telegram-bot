@@ -34,6 +34,8 @@ export function getCarsInRadius(cars: ICommonCar[], location: IGeolocation, radi
     return cars.filter(car => {
         const distance = getDistance(location, car);
 
+        car.distance = distance;
+
         return distance <= radius
     });
 }

@@ -1,16 +1,16 @@
 import {Observable, Subject} from 'rxjs/Rx';
 
-export interface IPollingService {
-    start(interval: number): Observable<any>;
+export interface IPollingService<T> {
+    start(interval: number): Observable<T>;
     stop(): void;
 }
 
-export class PollingService implements IPollingService {
+export class PollingService<T> implements IPollingService<T> {
     private stop$: Subject<void>;
 
-    constructor(private observable: Observable<any>) {}
+    constructor(private observable: Observable<T>) {}
 
-    start(interval: number = 500): Observable<any> {
+    start(interval: number = 500): Observable<T> {
         this.stop$ = new Subject<void>();
 
         return this.observable

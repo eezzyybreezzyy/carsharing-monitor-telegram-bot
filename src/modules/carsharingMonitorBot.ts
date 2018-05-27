@@ -1,4 +1,6 @@
-import TelegramBot from 'node-telegram-bot-api';
+
+import {Observable} from 'rxjs/Rx';
+import TelegramBot, {ConstructorOptions, Location} from 'node-telegram-bot-api';
 
 import {GrabberService} from '../services/grabber/grabber.service';
 import {PollingService} from '../services/polling/polling.service';
@@ -6,134 +8,90 @@ import {PollingService} from '../services/polling/polling.service';
 import {getNearestCar, getCarsInRadius} from '../utils/carGeolocation';
 
 import {ICommonCar} from '../models/cars/ICommonCar';
-import {IGeolocation} from '../models/IGeolocation';
+
+import {CarsharingMonitorBotUI} from './ui/carsharingMonitorBotUI';
 
 export class CarsharingMonitorBot {
-    private grabber: GrabberService;
     private bot: TelegramBot;
-
-    constructor(token: string, options?: TelegramBot.ConstructorOptions) {
+    private ui: CarsharingMonitorBotUI;
+    private grabber: GrabberService;
+    private poll: PollingService<ICommonCar[]>;
+    
+    constructor(token: string, options?: ConstructorOptions) {
         this.bot = new TelegramBot(token, options);
-        this.grabber = new GrabberService();
+        this.ui = new CarsharingMonitorBotUI(this.bot);
+        this.grabber = new GrabberService(['delimobil', 'timcar', 'youdrive']);
     }
 
     start() {
+        this.listenStartCommand();
+        this.listenSettingsCommand();
+        this.listenFindNearestCommand();
+        this.listenMonitorCommand();
+    }
+
+    private listenStartCommand() {
+        this.bot.onText(/^\/start/, msg => {
+            this.bot.sendMessage(msg.chat.id, `Приветствую, @${msg.from.username}!`);
+        });
+    }
+
+    private listenSettingsCommand() {
         this.bot.onText(/^\/settings/, msg => {
             this.bot.sendMessage(msg.chat.id, 'Пока не доступно:(');
         });
+    }
 
+    private listenFindNearestCommand() {
         this.bot.onText(/^\/find_nearest/, msg => {
-            this.requestUserLocation(msg.chat.id)
-                .then(() => {
-                    this.bot.once('location', msg => {
-                        this.showNearestCar(msg.chat.id, msg.location);
-                    });
+            this.ui.requestUserLocation(msg.chat.id)
+                .subscribe(location => {
+                    this.getAndSendNearestCar(msg.chat.id, location);
                 });
         });
-
-        // this.bot.onText(/^\/monitor/, msg => {
-        //     this.requestUserLocation(msg.chat.id)
-        //         .then(() => {
-        //             this.bot.once('location', msg => {
-        //                 const radius = 1
-
-        //                 this.bot.sendMessage(msg.chat.id, `Начинаю поиск автомобилей в радиусе ${radius}км...`);
-        //                 this.monitorCarsInRadius(msg.chat.id, msg.location, radius);
-        //             });
-        //         });
-        // });
     }
 
-    requestUserLocation(chatId) {
-        const options = {
-            parse_mode: 'Markdown',
-            reply_markup: {
-                one_time_keyboard: true,
-                keyboard: [
-                    [{text: 'Отправить', request_location: true}],
-                    [{text: 'Отмена'}]
-                ]
-            }
-        };
+    private listenMonitorCommand() {
+        this.bot.onText(/^\/monitor/, ({chat}) => {
+            let userLocation;
 
-        return this.bot.sendMessage(chatId, 'Для начала работы нужна ваша геопозиция', options);
+            this.ui.requestUserLocation(chat.id)
+                .switchMap(location => {
+                    userLocation = location;
+
+                    return this.ui.requestSearchRadius(chat.id);
+                })
+                .subscribe(radius => {
+                    this.monitorCarsInRadius(chat.id, userLocation, radius);
+                });
+        });
     }
 
-    showNearestCar(chatId, userLocation) {
+    private getAndSendNearestCar(chatId: number, userLocation: TelegramBot.Location) {
         this.grabber.getCars()
             .map(cars => getNearestCar(cars, userLocation))
             .subscribe(car => {
-                const {company, model, distance, fuel, urlSchema, latitude, longitude} = car;
-                // const distanceText = distance < 1
-                //                    ? `${distance.toFixed(3) * 1000}м`
-                //                    : `${distance.toFixed(2)}км`;
-                const text = `${company} ${model} находится на расстоянии ${distance.toFixed(2)}км от вас.\nДоступно бензина: ${fuel}%.\nПосмотреть в приложении: ${urlSchema}`;
-
-                this.bot.sendLocation(chatId, latitude, longitude)
-                    .then(() => {
-                        this.bot.sendMessage(chatId, text);
-                    });
-            })
+                this.ui.sendNearestCar(chatId, car);
+            });
     }
 
-    /*monitorCarsInRadius(chatId, userLocation, radius) {
-        const poll = new PollingService();
+    private monitorCarsInRadius(chatId: number, userLocation: TelegramBot.Location, radius: number) {
+        this.poll = new PollingService<ICommonCar[]>(this.getCarsInRadius.call(this, userLocation, radius));
 
-        poll.start()
-        this.grabber.getCars()
-            .then(cars => Car.getInRadius(cars, userLocation, radius))
-            .then(cars => {
-                // убирать из списка авто из cancelled
-                cars = cars.filter(car => !this.canceled.some(item => item.latitude === car.latitude && item.longitude === car.longitude));
-                return cars.length ? Car.getNearest(cars, userLocation) : null
-            })
-            .then(car => {
-                if (car) {
-                    const {company, model, distance, fuel, urlSchema, latitude, longitude} = car;
-                    const distanceText = distance < 1
-                                   ? `${distance.toFixed(3) * 1000}м`
-                                   : `${distance.toFixed(2)}км`;
-                    const text = `По вашему запросу найден ${company} ${model}. Находится на расстоянии ${distanceText} от вас.\nДоступно бензина: ${fuel}%.\nПосмотреть в приложении: ${urlSchema}\nПродолжить поиск?`;
+        this.poll.start()
+            .concatMap(cars => cars)
+            .subscribe(car => this.ui.sendNearestCar(chatId, car));
 
-                    this.paused = true;
+        this.ui.requestStopMonitoring(chatId, radius)
+            .filter(stop => stop)
+            .subscribe(() => {
+                this.poll.stop();
+                this.bot.sendMessage(chatId, 'Ок. Поиск прекращен');
+            });
+    }
 
-                    const options = {
-                        parse_mode: 'Markdown',
-                        reply_markup: {
-                            one_time_keyboard: true,
-                            keyboard: [
-                                [{text: 'Да'}],
-                                [{text: 'Нет'}]
-                            ]
-                        }
-                    };
-
-                    this.bot.sendLocation(chatId, latitude, longitude)
-                        .then(() => this.bot.sendMessage(chatId, text, options))
-                        .then(() => {
-                            // Если не ответил через 5 секунд то продолжать поиск
-                            this.bot.once('text', msg => {
-                                switch (msg.text) {
-                                    case 'Да':
-                                        // выкидывать найденный автомобиль из поиска
-                                        // выводить сообщение о продолжении поиска
-                                        this.bot.sendMessage(chatId, 'Хорошо, продолжаю поиск...');
-                                        this.canceled.push(car);
-                                        this.paused = false;
-                                        break;
-                                    case 'Нет':
-                                        // выводить сообщение об окончании поиска
-                                        this.bot.sendMessage(chatId, `Поиск завершен! Найдено ${this.canceled.length} автомобилей.`);
-                                        this.canceled = [];
-                                        clearInterval(this.interval);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            });
-                        });
-                }
-            })
-            .catch(err => console.log(err));
-    }*/
+    private getCarsInRadius(userLocation: TelegramBot.Location, radius: number): Observable<ICommonCar[]> {
+        return this.grabber.getCars()
+            .map(cars => getCarsInRadius(cars, userLocation, radius));
+    }
 }
