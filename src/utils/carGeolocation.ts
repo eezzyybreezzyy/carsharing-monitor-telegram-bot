@@ -18,24 +18,20 @@ function comparator(carA: ICommonCar, carB: ICommonCar): number {
     return carA.distance - carB.distance;
 }
 
-export function getNearestCar(cars: ICommonCar[], location: IGeolocation) {
-    const carsWithDistance = cars.map(car => {
+export function getNearestCars(cars: ICommonCar[], location: IGeolocation): ICommonCar[] {
+    return cars.map(car => {
         car.distance = getDistance(location, car);
 
         return car;
-    });
-
-    const nearestCar = carsWithDistance.sort(comparator)[0];
-
-    return nearestCar;
+    })
+    .sort(comparator);
 }
 
-export function getCarsInRadius(cars: ICommonCar[], location: IGeolocation, radius: number) {
+export function getCarsInRadius(cars: ICommonCar[], location: IGeolocation, radius: number): ICommonCar[] {
     return cars.filter(car => {
-        const distance = getDistance(location, car);
+        car.distance = getDistance(location, car);
 
-        car.distance = distance;
-
-        return distance <= radius
-    });
+        return car.distance <= radius
+    })
+    .sort(comparator);
 }

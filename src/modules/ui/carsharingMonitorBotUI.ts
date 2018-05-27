@@ -82,7 +82,7 @@ export class CarsharingMonitorBotUI {
         const text = this.getFoundCarText(car);
         
         return this.bot.sendLocation(chatId, car.latitude, car.longitude)
-            .then(() => this.bot.sendMessage(chatId, text));
+            .then(msg => this.bot.sendMessage(chatId, text));
     }
 
     private getOptionsForReplyKeyboard(keyboard: TelegramBot.KeyboardButton[][]): TelegramBot.SendMessageOptions {

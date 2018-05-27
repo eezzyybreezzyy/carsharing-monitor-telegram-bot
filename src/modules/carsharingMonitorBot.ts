@@ -5,8 +5,6 @@ import TelegramBot, {ConstructorOptions, Location} from 'node-telegram-bot-api';
 import {GrabberService} from '../services/grabber/grabber.service';
 import {PollingService} from '../services/polling/polling.service';
 
-import {getNearestCar, getCarsInRadius} from '../utils/carGeolocation';
-
 import {ICommonCar} from '../models/cars/ICommonCar';
 
 import {CarsharingMonitorBotUI} from './ui/carsharingMonitorBotUI';
@@ -20,7 +18,7 @@ export class CarsharingMonitorBot {
     constructor(token: string, options?: ConstructorOptions) {
         this.bot = new TelegramBot(token, options);
         this.ui = new CarsharingMonitorBotUI(this.bot);
-        this.grabber = new GrabberService(['delimobil', 'timcar', 'youdrive']);
+        this.grabber = new GrabberService();
     }
 
     start() {
@@ -45,8 +43,9 @@ export class CarsharingMonitorBot {
     private listenFindNearestCommand() {
         this.bot.onText(/^\/find_nearest/, msg => {
             this.ui.requestUserLocation(msg.chat.id)
-                .subscribe(location => {
-                    this.getAndSendNearestCar(msg.chat.id, location);
+                .switchMap(location => this.grabber.getCars(location))
+                .subscribe(cars => {
+                    this.ui.sendNearestCar(msg.chat.id, cars[0]);
                 });
         });
     }
@@ -67,20 +66,30 @@ export class CarsharingMonitorBot {
         });
     }
 
-    private getAndSendNearestCar(chatId: number, userLocation: TelegramBot.Location) {
-        this.grabber.getCars()
-            .map(cars => getNearestCar(cars, userLocation))
+    private monitorCarsInRadius(chatId: number, userLocation: TelegramBot.Location, radius: number) {
+        const stream$ = this.grabber.getCars(userLocation, radius);
+        const showed = [];
+
+        this.poll = new PollingService<ICommonCar[]>(stream$);
+        this.poll.start()
+            .map(cars => {
+                let foundCar: ICommonCar = null;
+
+                cars.some(car => {
+                    if (!showed.some(showedCar => showedCar.latitude === car.latitude && showedCar.longitude === car.longitude)) {
+                        foundCar = car;
+
+                        return true;
+                    }
+                });
+
+                return foundCar;
+            })
+            .filter(car => !!car)
             .subscribe(car => {
+                showed.push(car);
                 this.ui.sendNearestCar(chatId, car);
             });
-    }
-
-    private monitorCarsInRadius(chatId: number, userLocation: TelegramBot.Location, radius: number) {
-        this.poll = new PollingService<ICommonCar[]>(this.getCarsInRadius.call(this, userLocation, radius));
-
-        this.poll.start()
-            .concatMap(cars => cars)
-            .subscribe(car => this.ui.sendNearestCar(chatId, car));
 
         this.ui.requestStopMonitoring(chatId, radius)
             .filter(stop => stop)
@@ -88,10 +97,5 @@ export class CarsharingMonitorBot {
                 this.poll.stop();
                 this.bot.sendMessage(chatId, 'Ок. Поиск прекращен');
             });
-    }
-
-    private getCarsInRadius(userLocation: TelegramBot.Location, radius: number): Observable<ICommonCar[]> {
-        return this.grabber.getCars()
-            .map(cars => getCarsInRadius(cars, userLocation, radius));
     }
 }
