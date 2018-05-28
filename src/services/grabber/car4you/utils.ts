@@ -8,10 +8,10 @@ export function toCommonCars(cars: ICar4you[]): ICommonCar[] {
             id: car.id,
             model: `${car.vendor} ${car.marka}`,
             regNumber: car.numberplate,
-            fuel: car.data_fuel,
-            latitude: +car.lat,
-            longitude: +car.lng,
-            urlSchema: `car4you://cars/${car.id}`
+            fuel: parseFloat(car.data_fuel),
+            latitude: parseFloat(car.lat),
+            longitude: parseFloat(car.lng),
+            urlSchema: `car4you://cars`
         })
     );
 }

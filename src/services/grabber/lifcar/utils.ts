@@ -10,7 +10,7 @@ export function toCommonCars(cars: ILifCar[]): ICommonCar[] {
             fuel: car.fuel,
             latitude: car.lat,
             longitude: car.lon,
-            urlSchema: `lifcar://cars/${car.id}`
+            urlSchema: `lifcar://cars`
         })
     );
 }

@@ -24,7 +24,7 @@ export function toCommonCars(cars: IBelkaCar[]): ICommonCar[] {
             fuel: car.no_refill_distance,
             latitude: car.latitude,
             longitude: car.longitude,
-            urlSchema: `belkacar://cars/${car.id}`
+            urlSchema: `belkacar://cars`
         })
     );
 }

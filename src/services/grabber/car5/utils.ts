@@ -11,7 +11,7 @@ export function toCommonCars(cars: ICar5[]): ICommonCar[] {
             fuel: car.fuel1, // fuel в литрах, fuel1 в процентах
             latitude: +car.latitude,
             longitude: +car.longitude,
-            urlSchema: `car5://cars/${car.id}`
+            urlSchema: `car5://cars`
         })
     );
 }

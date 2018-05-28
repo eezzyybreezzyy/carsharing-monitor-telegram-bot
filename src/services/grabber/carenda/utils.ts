@@ -8,10 +8,10 @@ export function toCommonCars(cars: ICarendaCarExtended[]): ICommonCar[] {
             id: car.id,
             model: car.model.name_full,
             regNumber: car.number,
-            fuel: car.fuel.replace(' л.', ''),
+            fuel: parseFloat(car.fuel), // в литрах
             latitude: car.lat,
             longitude: car.lon,
-            urlSchema: `carenda://cars/${car.id}`
+            urlSchema: `carenda://cars`
         })
     );
 }

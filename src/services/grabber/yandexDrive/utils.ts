@@ -17,7 +17,7 @@ export function toCommonCars(cars: IYandexDriveCar[]): ICommonCar[] {
             fuel: car.telematics_state.fuel_level,
             latitude: car.location.lat,
             longitude: car.location.lon,
-            urlSchema: `yandexdrive://cars/${car.id}`
+            urlSchema: `yandexdrive://cars`
         })
     );
 }

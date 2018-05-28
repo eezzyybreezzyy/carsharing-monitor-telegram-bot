@@ -8,10 +8,10 @@ export function toCommonCars(cars: IDelimobilCar[]): ICommonCar[] {
             id: car.id,
             model: car.model,
             regNumber: car.reg_number,
-            fuel: car.fuel,
+            fuel: parseFloat(car.fuel),
             latitude: car.geometry.coordinates[1],
             longitude: car.geometry.coordinates[0],
-            urlSchema: `delimobil://cars/${car.id}`
+            urlSchema: `delimobil://cars`
         })
     );
 }

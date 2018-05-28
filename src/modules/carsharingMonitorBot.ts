@@ -26,6 +26,7 @@ export class CarsharingMonitorBot {
         this.listenSettingsCommand();
         this.listenFindNearestCommand();
         this.listenMonitorCommand();
+        this.listenHelpCommand();
     }
 
     private listenStartCommand() {
@@ -45,7 +46,7 @@ export class CarsharingMonitorBot {
             this.ui.requestUserLocation(msg.chat.id)
                 .switchMap(location => this.grabber.getCars(location))
                 .subscribe(cars => {
-                    this.ui.sendNearestCar(msg.chat.id, cars[0]);
+                    this.ui.sendCar(msg.chat.id, cars[0]);
                 });
         });
     }
@@ -63,6 +64,12 @@ export class CarsharingMonitorBot {
                 .subscribe(radius => {
                     this.monitorCarsInRadius(chat.id, userLocation, radius);
                 });
+        });
+    }
+
+    private listenHelpCommand() {
+        this.bot.onText(/^\/help/, msg => {
+            this.bot.sendMessage(msg.chat.id, 'Помощь');
         });
     }
 
@@ -88,7 +95,7 @@ export class CarsharingMonitorBot {
             .filter(car => !!car)
             .subscribe(car => {
                 showed.push(car);
-                this.ui.sendNearestCar(chatId, car);
+                this.ui.sendCar(chatId, car);
             });
 
         this.ui.requestStopMonitoring(chatId, radius)
