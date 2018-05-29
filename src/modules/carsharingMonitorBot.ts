@@ -25,7 +25,7 @@ export class CarsharingMonitorBot {
     constructor(token: string, options?: ConstructorOptions) {
         this.bot = new TelegramBot(token, options);
         this.ui = new CarsharingMonitorBotUI(this.bot);
-        this.grabber = new GrabberService();
+        this.grabber = new GrabberService(['delimobil', 'youdrive', 'belkacar', 'yandexdrive', 'timcar']);
     }
 
     start() {
@@ -66,7 +66,7 @@ export class CarsharingMonitorBot {
 
     private handleFindNearestCommand() {
         this.bot.onText(/^\/find_nearest/, msg => {
-            if (this.users[msg.chat.id] && this.users[msg.chat.id].state) {
+            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_MONITOR') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
 
                 return;
@@ -80,6 +80,7 @@ export class CarsharingMonitorBot {
                 .switchMap(location => this.grabber.getCars(location))
                 .subscribe(cars => {
                     this.ui.sendCar(msg.chat.id, cars[0]);
+                    this.users[msg.from.id].state = 'S_WAIT_NEW_MONITOR';
                 }, err => console.log('Error: ', err));
         });
     }
