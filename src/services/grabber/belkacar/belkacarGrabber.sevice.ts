@@ -7,7 +7,7 @@ import {ICommonCar} from '../../../models/cars/ICommonCar';
 
 import {parsePage, toCommonCars} from './utils';
 
-import apiUrl from '../../api/config';
+import apiUrl from '../../../config';
 
 export class BelkaCarGrabberService {
     private apiService: APIService;

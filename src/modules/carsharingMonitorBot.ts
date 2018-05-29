@@ -8,12 +8,19 @@ import {PollingService} from '../services/polling/polling.service';
 import {ICommonCar} from '../models/cars/ICommonCar';
 
 import {CarsharingMonitorBotUI} from './ui/carsharingMonitorBotUI';
+import {parseRadius} from './ui/utils';
+
+interface BotUser {
+    state?: string;
+    location?: Location;
+    poll?: PollingService<ICommonCar[]>;
+}
 
 export class CarsharingMonitorBot {
     private bot: TelegramBot;
     private ui: CarsharingMonitorBotUI;
     private grabber: GrabberService;
-    private poll: PollingService<ICommonCar[]>;
+    private users: {[id: number]: BotUser} = {};
     
     constructor(token: string, options?: ConstructorOptions) {
         this.bot = new TelegramBot(token, options);
@@ -22,63 +29,124 @@ export class CarsharingMonitorBot {
     }
 
     start() {
-        this.listenStartCommand();
-        this.listenSettingsCommand();
-        this.listenFindNearestCommand();
-        this.listenMonitorCommand();
-        this.listenHelpCommand();
+        this.handleStartAndHelpCommand();
+        this.handleCityCommand();
+        this.handleServicesCommand();
+        this.handleModelsCommand();
+        this.handleFindNearestCommand();
+        this.handleMonitorCommand();
+
+        this.handleRadiusMessage();
+        this.handleStopMonitor();
     }
 
-    private listenStartCommand() {
-        this.bot.onText(/^\/start/, msg => {
-            this.bot.sendMessage(msg.chat.id, `Приветствую, @${msg.from.username}!`);
+    private handleStartAndHelpCommand() {
+        this.bot.onText(/^\/(start|help)/, msg => {
+            this.ui.sendGreetings(msg);
         });
     }
 
-    private listenSettingsCommand() {
-        this.bot.onText(/^\/settings/, msg => {
-            this.bot.sendMessage(msg.chat.id, 'Пока не доступно:(');
+    private handleCityCommand() {
+        this.bot.onText(/^\/city/, msg => {
+            this.bot.sendMessage(msg.chat.id, 'Скоро!');
         });
     }
 
-    private listenFindNearestCommand() {
+    private handleServicesCommand() {
+        this.bot.onText(/^\/services/, msg => {
+            this.bot.sendMessage(msg.chat.id, 'Скоро!');
+        });
+    }
+
+    private handleModelsCommand() {
+        this.bot.onText(/^\/models/, msg => {
+            this.bot.sendMessage(msg.chat.id, 'Скоро!');
+        });
+    }
+
+    private handleFindNearestCommand() {
         this.bot.onText(/^\/find_nearest/, msg => {
+            if (this.users[msg.chat.id] && this.users[msg.chat.id].state) {
+                this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
+
+                return;
+            }
+
+            if (!this.users[msg.from.id]) {
+                this.users[msg.from.id] = {state: 'S_LOCATION_SEND'};
+            }
+
             this.ui.requestUserLocation(msg.chat.id)
                 .switchMap(location => this.grabber.getCars(location))
                 .subscribe(cars => {
                     this.ui.sendCar(msg.chat.id, cars[0]);
+                }, err => console.log('Error: ', err));
+        });
+    }
+
+    private handleMonitorCommand() {
+        this.bot.onText(/^\/monitor/, msg => {
+            if (this.users[msg.chat.id] && this.users[msg.chat.id].state) {
+                this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
+
+                return;
+            }
+
+            if (!this.users[msg.from.id]) {
+                this.users[msg.from.id] = {state: 'S_LOCATION_SEND'};
+            }
+
+            this.ui.requestUserLocation(msg.chat.id)
+                .subscribe(location => {
+                    this.users[msg.from.id].state = 'S_RADIUS_ENTER';
+                    this.users[msg.from.id].location = location;
+                    this.ui.requestSearchRadius(msg);
                 });
         });
     }
 
-    private listenMonitorCommand() {
-        this.bot.onText(/^\/monitor/, ({chat}) => {
-            let userLocation;
-
-            this.ui.requestUserLocation(chat.id)
-                .switchMap(location => {
-                    userLocation = location;
-
-                    return this.ui.requestSearchRadius(chat.id);
-                })
-                .subscribe(radius => {
-                    this.monitorCarsInRadius(chat.id, userLocation, radius);
-                });
+    private handleRadiusMessage() {
+        this.bot.on('text', msg => {
+            if (!this.users[msg.chat.id] || this.users[msg.chat.id].state !== 'S_RADIUS_ENTER') {
+                return;
+            }
+    
+            const radius = parseRadius(msg.text);
+    
+            if (!radius) {
+                this.bot.sendMessage(msg.chat.id, 'Неверный формат радиуса, повтори еще раз!');
+    
+                return;
+            }
+    
+            this.monitorCarsInRadius(msg, this.users[msg.from.id].location, radius);
         });
     }
 
-    private listenHelpCommand() {
-        this.bot.onText(/^\/help/, msg => {
-            this.bot.sendMessage(msg.chat.id, 'Помощь');
-        });
+    private handleStopMonitor() {
+        this.bot.on('text', msg => {
+            if (!this.users[msg.chat.id] || this.users[msg.from.id].state !== 'S_MONITORING') {
+                return;
+            }
+    
+            if (msg.text !== 'Прекратить поиск') {
+                return;
+            } 
+
+            this.users[msg.from.id].poll.stop();
+            this.bot.sendMessage(msg.chat.id, 'Ок. Поиск прекращен');
+            this.users[msg.from.id].state = 'S_WAIT_NEW_MONITOR';
+        }) ;
     }
 
-    private monitorCarsInRadius(chatId: number, userLocation: TelegramBot.Location, radius: number) {
+    private monitorCarsInRadius(message: TelegramBot.Message, userLocation: TelegramBot.Location, radius: number) {
         const stream$ = this.grabber.getCars(userLocation, radius);
         const showed = [];
 
-        this.poll = new PollingService<ICommonCar[]>(stream$);
-        this.poll.start()
+        this.users[message.from.id].state = 'S_MONITORING';
+
+        this.users[message.from.id].poll = new PollingService<ICommonCar[]>(stream$);
+        this.users[message.from.id].poll.start()
             .map(cars => {
                 let foundCar: ICommonCar = null;
 
@@ -95,14 +163,9 @@ export class CarsharingMonitorBot {
             .filter(car => !!car)
             .subscribe(car => {
                 showed.push(car);
-                this.ui.sendCar(chatId, car);
+                this.ui.sendCar(message.chat.id, car);
             });
 
-        this.ui.requestStopMonitoring(chatId, radius)
-            .filter(stop => stop)
-            .subscribe(() => {
-                this.poll.stop();
-                this.bot.sendMessage(chatId, 'Ок. Поиск прекращен');
-            });
+        this.ui.requestStopMonitoring(message, radius);
     }
 }

@@ -10,7 +10,7 @@ export function parseRadius(text: string): number {
         return parseFloat(text) / 1000;
     }
 
-    return 1;
+    return null;
 }
 
 export function getOptionsForReplyKeyboard(keyboard: KeyboardButton[][]): SendMessageOptions {
@@ -30,19 +30,19 @@ export function transformCarToText(car: ICommonCar): string {
                        : distance.toFixed(2) + 'км';
     const text = [];
 
-    text.push(`*${company}*\n`);
-    text.push(`*Авто:* ${model}`);
-    text.push(`*Расстояние:* ~${distanceWithUnits}`);
+    text.push(`<b>${company}</b>\n`);
+    text.push(`<b>Авто:</b> ${model}`);
+    text.push(`<b>Расстояние:</b> ~${distanceWithUnits}`);
 
     if (regNumber) {
-        text.push(`*Госномер:* ${regNumber}`);
+        text.push(`<b>Госномер:</b> ${regNumber}`);
     }
 
     if (fuel) {
-        text.push(`*Доступно бензина:* ~${fuel.toFixed(0)}%.`);
+        text.push(`<b>Доступно бензина:</b> ~${fuel.toFixed(0)}%`);
     }
 
-    text.push(`*Открыть приложение:* ${urlSchema}.`);
+    text.push(`<a href="${urlSchema}">Перейти в приложение</a>`);
 
     return text.join('\n');
 }

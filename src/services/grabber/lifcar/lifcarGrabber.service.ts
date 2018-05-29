@@ -7,7 +7,7 @@ import {ICommonCar} from '../../../models/cars/ICommonCar';
 
 import {toCommonCars} from './utils';
 
-import apiUrl from '../../api/config';
+import apiUrl from '../../../config';
 
 // Добавить и объеденить с каруселью
 export class LifCarGrabberService implements IGrabberService {

@@ -8,7 +8,7 @@ import {IGeolocation} from '../../models/IGeolocation';
 
 import {getCarsInRadius, getNearestCars} from '../../utils/carGeolocation';
 
-import apiUrl from '../api/config';
+import apiUrl from '../../config';
 
 const CARSHARINGS = Object.keys(apiUrl);
 
