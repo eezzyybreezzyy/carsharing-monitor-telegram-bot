@@ -17,13 +17,3 @@ switch (args[0]) {
 const bot = new CarsharingMonitorBot(token, options);
 
 bot.start();
-// import { PollingService } from "./services/polling/polling.service";
-// import { GrabberService } from "./services/grabber/grabber.service";
-// import { GrabberServiceFactory } from "./services/grabber/grabber.service.factory";
-
-// const g = new GrabberServiceFactory();
-// const grabber = new GrabberService();
-// const poll = new PollingService(grabber.getCars());
-
-// poll.start().subscribe(cars => console.log(cars[0]), console.log);
-

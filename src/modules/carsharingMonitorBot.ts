@@ -42,7 +42,7 @@ export class CarsharingMonitorBot {
 
     private handleStartAndHelpCommand() {
         this.bot.onText(/^\/(start|help)/, msg => {
-            this.ui.sendGreetings(msg);
+            this.ui.sendGreetings(msg.chat.id, msg.from.username);
         });
     }
 
@@ -101,7 +101,7 @@ export class CarsharingMonitorBot {
                 .subscribe(location => {
                     this.users[msg.from.id].state = 'S_RADIUS_ENTER';
                     this.users[msg.from.id].location = location;
-                    this.ui.requestSearchRadius(msg);
+                    this.ui.requestSearchRadius(msg.chat.id);
                 });
         });
     }
@@ -167,6 +167,6 @@ export class CarsharingMonitorBot {
                 this.ui.sendCar(message.chat.id, car);
             });
 
-        this.ui.requestStopMonitoring(message, radius);
+        this.ui.requestStopMonitoring(message.chat.id, radius);
     }
 }

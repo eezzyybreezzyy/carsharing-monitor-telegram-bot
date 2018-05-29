@@ -10,10 +10,10 @@ import apiUrl from '../../config';
 export class CarsharingMonitorBotUI {
     constructor(private bot: TelegramBot) {}
 
-    sendGreetings(message: TelegramBot.Message) {
+    sendGreetings(chatId: number, username: string) {
         const text = [];
 
-        text.push(`Приветствую, @${message.from.username}!`);
+        text.push(`Приветствую, @${username}!`);
         text.push('\nЯ бот для поиска и отслеживания каршеринговых автомобилей.')
         text.push('\nЯ умею работать со следующими сервисами:');
         
@@ -30,7 +30,7 @@ export class CarsharingMonitorBotUI {
         text.push('\/services – изменение списка сервисов, среди которых будет производиться поиск');
         text.push('\/models – изменение списка моделей, среди которых будет производиться поиск');
 
-        this.bot.sendMessage(message.chat.id, text.join('\n'), {parse_mode: 'HTML'});
+        this.bot.sendMessage(chatId, text.join('\n'), {parse_mode: 'HTML'});
     }
 
     requestUserLocation(chatId: number): Observable<TelegramBot.Location> {
@@ -54,7 +54,7 @@ export class CarsharingMonitorBotUI {
         });
     }
 
-    requestSearchRadius(message: TelegramBot.Message) {
+    requestSearchRadius(chatId: number) {
         const keyboard = [
             [{text: '500м'}, {text: '750м'}],
             [{text: '1км'}, {text: '1.5км'}],
@@ -62,28 +62,23 @@ export class CarsharingMonitorBotUI {
         ];
         const options = getOptionsForReplyKeyboard(keyboard);
 
-        this.bot.sendMessage(message.chat.id, 'Выберите радиус поиска ниже или введите в форматe: число и единица измерения (м или км)', options)
-            .catch(err => {
-                console.log('Error while send radius request: ', err)
-            });
+        this.bot.sendMessage(chatId, 'Выберите радиус поиска ниже или введите в форматe: число и единица измерения (м или км)', options);
     }
 
-    requestStopMonitoring(message: TelegramBot.Message, radius: number) {
+    requestStopMonitoring(chatId: number, radius: number) {
         const keyboard = [
             [{text: 'Прекратить поиск'}]
         ];
         const options = getOptionsForReplyKeyboard(keyboard);
 
-        this.bot.sendMessage(message.chat.id, `Начинаю поиск автомобилей в радиусе ${radius}км...`, options)
-            .catch(err => {
-                console.log('Error while send stop monitor request: ', err);
-            });
+        this.bot.sendMessage(chatId, `Начинаю поиск автомобилей в радиусе ${radius}км...`, options);
     }
 
-    sendCar(chatId: number, car: ICommonCar): Promise<TelegramBot.Message | Error> {
+    sendCar(chatId: number, car: ICommonCar) {
         const text = transformCarToText(car);
 
-        return this.bot.sendLocation(chatId, car.latitude, car.longitude, {disable_notification: true})
-            .then(msg => this.bot.sendMessage(chatId, text, {parse_mode: 'HTML'}));
+        this.bot.sendLocation(chatId, car.latitude, car.longitude, {disable_notification: true})
+            .then(msg => this.bot.sendMessage(chatId, text, {parse_mode: 'HTML'}))
+            .catch(err => console.log('Error: ', err));
     }
 }
