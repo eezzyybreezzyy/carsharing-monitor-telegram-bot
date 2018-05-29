@@ -87,7 +87,7 @@ export class CarsharingMonitorBot {
 
     private handleMonitorCommand() {
         this.bot.onText(/^\/monitor/, msg => {
-            if (this.users[msg.chat.id] && this.users[msg.chat.id].state) {
+            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_MONITOR') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
 
                 return;
