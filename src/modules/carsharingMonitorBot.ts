@@ -10,6 +10,7 @@ import {CarsharingMonitorBotUI} from './ui/carsharingMonitorBotUI';
 import {parseRadius} from './ui/utils';
 
 import {cities, companies, getCompaniesFromCity} from './utils';
+import {areCarsEqual} from '../utils/carGeolocation';
 
 interface BotUser {
     state?: string;
@@ -35,6 +36,7 @@ export class CarsharingMonitorBot {
         this.handleCityCommand();
         this.handleServicesCommand();
         this.handleModelsCommand();
+        this.handleSettingsCommand();
         this.handleFindNearestCommand();
         this.handleMonitorCommand();
 
@@ -70,6 +72,12 @@ export class CarsharingMonitorBot {
 
     private handleModelsCommand() {
         this.bot.onText(/^\/models/, msg => {
+            this.bot.sendMessage(msg.chat.id, 'Скоро!');
+        });
+    }
+
+    private handleSettingsCommand() {
+        this.bot.onText(/^\/settings/, msg => {
             this.bot.sendMessage(msg.chat.id, 'Скоро!');
         });
     }
@@ -150,7 +158,7 @@ export class CarsharingMonitorBot {
 
     private monitorCarsInRadius(message: TelegramBot.Message, userLocation: TelegramBot.Location, radius: number) {
         const stream$ = this.grabber.getCars(userLocation, radius);
-        const showed = [];
+        const showedCars = [];
 
         this.users[message.from.id].state = 'S_MONITORING';
 
@@ -160,7 +168,7 @@ export class CarsharingMonitorBot {
                 let foundCar: ICommonCar = null;
 
                 cars.some(car => {
-                    if (!showed.some(showedCar => showedCar.latitude === car.latitude && showedCar.longitude === car.longitude)) {
+                    if (!showedCars.some(showedCar => areCarsEqual(showedCar, car))) {
                         foundCar = car;
 
                         return true;
@@ -171,7 +179,7 @@ export class CarsharingMonitorBot {
             })
             .filter(car => !!car)
             .subscribe(car => {
-                showed.push(car);
+                showedCars.push(car);
                 this.ui.sendCar(message.chat.id, car);
             });
 
