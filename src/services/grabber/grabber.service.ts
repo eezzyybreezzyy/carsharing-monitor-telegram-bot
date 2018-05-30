@@ -6,16 +6,13 @@ import {IGrabberServiceFactory} from '../../models/grabber/IGrabberServiceFactor
 import {ICommonCar} from '../../models/cars/ICommonCar';
 import {IGeolocation} from '../../models/IGeolocation';
 
+import {concatArrays} from '../../utils/concatArrays';
 import {getCarsInRadius, getNearestCars} from '../../utils/carGeolocation';
-
-import apiUrl from '../../config';
-
-const CARSHARINGS = Object.keys(apiUrl);
 
 export class GrabberService {
     private grabberFactory: IGrabberServiceFactory;
 
-    constructor(private carsharings: string[] = CARSHARINGS) {
+    constructor(private carsharings: string[]) {
         this.grabberFactory = new GrabberServiceFactory();
     }
 
@@ -27,7 +24,7 @@ export class GrabberService {
 
         return Observable.zip<ICommonCar[]>(...streams$)
             .map(arrays => this.handleAndRemoveErrors(arrays))
-            .map(arrays => this.concatArrays(arrays))
+            .map(arrays => concatArrays(arrays))
             .map(cars => {
                 return radius
                      ? getCarsInRadius(cars, location, radius)
@@ -40,12 +37,8 @@ export class GrabberService {
             if (item instanceof Array) {
                 return item;
             };
-            
+
             console.log(`${this.carsharings[index]}: ${item}`);
         });
-    }
-
-    private concatArrays(arrays: ICommonCar[][]): ICommonCar[] {
-        return Array.prototype.concat.apply([], arrays);
     }
 }

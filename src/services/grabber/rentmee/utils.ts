@@ -6,6 +6,8 @@ import {ICommonCar} from '../../../models/cars/ICommonCar';
 import {parseString} from 'xml2js';
 import {normalize} from 'xml2js/lib/processors';
 
+import {config} from '../../../config';
+
 export function parseXml(xml: string): Observable<IRentmeeCar[]> {
     return Observable.create((observer: Observer<IRentmeeCar[]>) => {
         const options = {
@@ -32,7 +34,7 @@ export function parseXml(xml: string): Observable<IRentmeeCar[]> {
 export function toCommonCars(cars: IRentmeeCar[]): ICommonCar[] {
     return cars.map(car =>
         ({
-            company: 'Rentmee',
+            company: config.rentmee.name,
             id: car.id,
             model: `${car.brand} ${car.model}`,
             fuel: parseFloat(car.fuel),

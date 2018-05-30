@@ -13,12 +13,12 @@ export function parseRadius(text: string): number {
     return null;
 }
 
-export function getOptionsForReplyKeyboard(keyboard: KeyboardButton[][]): SendMessageOptions {
+export function getOptionsForReplyKeyboard(keyboard: KeyboardButton[][], resize: boolean = true): SendMessageOptions {
     return {
         reply_markup: {
             keyboard,
             one_time_keyboard: true,
-            resize_keyboard: true
+            resize_keyboard: resize
         }
     };
 }

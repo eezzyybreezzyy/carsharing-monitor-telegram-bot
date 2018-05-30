@@ -7,7 +7,7 @@ import {ICommonCar} from '../../../models/cars/ICommonCar';
 
 import {toCommonCars} from './utils';
 
-import apiUrl from '../../../config';
+import {config} from '../../../config';
 
 export class YandexDriveGrabberService implements IGrabberService {
     private apiService: APIService;
@@ -19,7 +19,7 @@ export class YandexDriveGrabberService implements IGrabberService {
     getCars(): Observable<ICommonCar[]> {
         const headers = {'Authorization': 'OAuth AQAAAAARjsyKAARoNePbXSkuTkt3rdEuymIM68c'};
 
-        return this.apiService.get<IYandexDriveAPIResponse>(apiUrl.yandexdrive, {headers})
+        return this.apiService.get<IYandexDriveAPIResponse>(config.yandexdrive.api, {headers})
             .map(resp => toCommonCars(resp.cars));
     }
 }

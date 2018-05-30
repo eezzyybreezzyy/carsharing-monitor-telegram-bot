@@ -7,7 +7,7 @@ import {ICommonCar} from '../../../models/cars/ICommonCar';
 
 import {parseXml, toCommonCars} from './utils';
 
-import apiUrl from '../../../config';
+import {config} from '../../../config';
 
 export class RentmeeGrabberService {
     private apiService: APIService;
@@ -17,7 +17,7 @@ export class RentmeeGrabberService {
     }
 
     getCars(): Observable<ICommonCar[]> {
-        return this.apiService.get<IRentmeeAPIResponse>(apiUrl.rentmee)
+        return this.apiService.get<IRentmeeAPIResponse>(config.rentmee.api)
             .switchMap(xml => parseXml(xml))
             .map(cars => toCommonCars(cars));
     }

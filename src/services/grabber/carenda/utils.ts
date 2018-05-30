@@ -1,10 +1,12 @@
 import {ICarendaCarExtended} from '../../../models/cars/ICarendaCar';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
+import {config} from '../../../config';
+
 export function toCommonCars(cars: ICarendaCarExtended[]): ICommonCar[] {
     return cars.map(car =>
         ({
-            company: 'Carenda',
+            company: config.carenda.name,
             id: car.id,
             model: car.model.name_full,
             regNumber: car.number,

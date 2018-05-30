@@ -7,7 +7,7 @@ import {ICommonCar} from '../../../models/cars/ICommonCar';
 
 import {toCommonCars} from './utils';
 
-import apiUrl from '../../../config';
+import {config} from '../../../config';
 
 export class Car5GrabberService implements IGrabberService {
     private apiService: APIService;
@@ -17,7 +17,7 @@ export class Car5GrabberService implements IGrabberService {
     }
 
     getCars(): Observable<ICommonCar[]> {
-        return this.apiService.get<ICar5APIResponse[]>(apiUrl.car5)
+        return this.apiService.get<ICar5APIResponse[]>(config.car5.api)
             .map(resp => toCommonCars(resp[0].data.arrCar));
     }
 }

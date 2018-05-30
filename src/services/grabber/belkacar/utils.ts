@@ -1,6 +1,8 @@
 import {IBelkaCar} from '../../../models/cars/IBelkaCar';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
+import {config} from '../../../config';
+
 export function parsePage(html: string): IBelkaCar[] {
     const re = /carsInfo\[\d+\] = ({.+})\;/g
     const cars = [];
@@ -17,7 +19,7 @@ export function parsePage(html: string): IBelkaCar[] {
 export function toCommonCars(cars: IBelkaCar[]): ICommonCar[] {
     return cars.map(car =>
         ({
-            company: 'BelkaCar',
+            company: config.belkacar.name,
             id: car.id,
             model: car.model,
             // переводить км до заправки в бензин

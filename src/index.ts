@@ -1,3 +1,5 @@
+process.env.NTBA_FIX_319 = '1';
+
 import {CarsharingMonitorBot} from './modules/carsharingMonitorBot';
 
 import {ConstructorOptions} from 'node-telegram-bot-api';

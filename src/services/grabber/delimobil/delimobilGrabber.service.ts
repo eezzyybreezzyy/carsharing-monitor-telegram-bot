@@ -7,7 +7,7 @@ import {ICommonCar} from '../../../models/cars/ICommonCar';
 
 import {toCommonCars} from './utils';
 
-import apiUrl from '../../../config';
+import {config} from '../../../config';
 
 export class DelimobilGrabberService implements IGrabberService {
     private apiService: APIService;
@@ -17,7 +17,7 @@ export class DelimobilGrabberService implements IGrabberService {
     }
 
     getCars(): Observable<ICommonCar[]> {
-        return this.apiService.get<IDelimobilAPIResponse>(apiUrl.delimobil)
+        return this.apiService.get<IDelimobilAPIResponse>(config.delimobil.api)
             .map(resp => toCommonCars(resp.features));
     }
 }

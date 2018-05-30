@@ -3,9 +3,10 @@ import {Observable, Observer} from 'rxjs/Rx'
 
 import {ICommonCar} from '../../models/cars/ICommonCar';
 
+import {cities} from '../utils';
 import {parseRadius, getOptionsForReplyKeyboard, transformCarToText} from './utils';
 
-import apiUrl from '../../config';
+import {config} from '../../config';
 
 export class CarsharingMonitorBotUI {
     constructor(private bot: TelegramBot) {}
@@ -16,9 +17,9 @@ export class CarsharingMonitorBotUI {
         text.push(`Приветствую, @${username}!`);
         text.push('\nЯ бот для поиска и отслеживания каршеринговых автомобилей.')
         text.push('\nЯ умею работать со следующими сервисами:');
-        
-        Object.keys(apiUrl).sort().forEach((name, index) => {
-            text.push(`${index + 1}) ${name}`);
+
+        Object.keys(config).sort().forEach((company, index) => {
+            text.push(`${index + 1}) ${config[company].name}`);
         });
 
         text.push('\nПонимаю следующие команды:\n');
@@ -31,6 +32,18 @@ export class CarsharingMonitorBotUI {
         text.push('\/models – изменение списка моделей, среди которых будет производиться поиск');
 
         this.bot.sendMessage(chatId, text.join('\n'), {parse_mode: 'HTML'});
+    }
+
+    requestCity(chatId: number) {
+        const keyboard = [
+            [...cities.slice(0, 3)],
+            [...cities.slice(3, 6)],
+            [...cities.slice(6, 9)],
+            [...cities.slice(9, cities.length), 'Отменить']
+        ];
+        const options = getOptionsForReplyKeyboard(keyboard, false);
+
+        this.bot.sendMessage(chatId, 'Выберите город поиска', options);
     }
 
     requestUserLocation(chatId: number): Observable<TelegramBot.Location> {

@@ -8,7 +8,7 @@ import {ICommonCar} from '../../../models/cars/ICommonCar';
 
 import {toCommonCars} from './utils';
 
-import apiUrl from '../../../config';
+import {config} from '../../../config';
 
 // для easyride
 // const options ={
@@ -36,7 +36,7 @@ export class CarendaGrabberService implements IGrabberService {
     }
 
     getCars(): Observable<ICommonCar[]> {
-        return this.apiService.get<ICarendaAPICarsResponse>(`${apiUrl.carenda}/cars`)
+        return this.apiService.get<ICarendaAPICarsResponse>(`${config.carenda.api}/cars`)
             .switchMap(resp => {
                 if (!resp.success) {
                     return Observable.throw(this.getErrorText(resp));
@@ -50,7 +50,7 @@ export class CarendaGrabberService implements IGrabberService {
     }
 
     private getCar(id: string): Observable<ICarendaCarExtended> {
-        return this.apiService.get<ICarendaAPICarInfoResponse>(`${apiUrl.carenda}/car-info?id=${id}`)
+        return this.apiService.get<ICarendaAPICarInfoResponse>(`${config.carenda.api}/car-info?id=${id}`)
             .map(resp => resp.car);
     }
 

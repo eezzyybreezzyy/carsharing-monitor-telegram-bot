@@ -1,6 +1,8 @@
 import {IYouDriveCar} from '../../../models/cars/IYouDriveCar';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
+import {config} from '../../../config';
+
 export function toCommonCars(cars: IYouDriveCar[], withoutPartners: boolean = true): ICommonCar[] {
     if (withoutPartners) {
         cars = cars.filter(car => !car.is_parther);
@@ -8,7 +10,7 @@ export function toCommonCars(cars: IYouDriveCar[], withoutPartners: boolean = tr
 
     return cars.map(car =>
         ({
-            company: 'YouDrive',
+            company: config.youdrive.name,
             model: car.model,
             fuel: car.fuel,
             latitude: car.latitude,

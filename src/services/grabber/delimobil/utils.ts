@@ -1,10 +1,12 @@
 import {IDelimobilCar} from '../../../models/cars/IDelimobilCar';
 import {ICommonCar} from '../../../models/cars/ICommonCar';
 
+import {config} from '../../../config';
+
 export function toCommonCars(cars: IDelimobilCar[]): ICommonCar[] {
     return cars.map(car =>
         ({
-            company: 'Делимобиль',
+            company: config.delimobil.name,
             id: car.id,
             model: car.model,
             regNumber: car.reg_number,
