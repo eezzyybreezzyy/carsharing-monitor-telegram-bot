@@ -34,7 +34,7 @@ export class GrabberServiceFactory implements IGrabberServiceFactory {
             case config.urentcar.name:
             case config.drivetime.name:
             case config.getmancar.name:
-                return new CarTrekGrabberService(name);
+                return new CarTrekGrabberService(name.toLowerCase());
             case config.delimobil.name:
                 return new DelimobilGrabberService();
             case config.lifcar.name:

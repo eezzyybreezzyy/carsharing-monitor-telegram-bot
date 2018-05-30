@@ -3,10 +3,8 @@ import {Observable, Observer} from 'rxjs/Rx'
 
 import {ICommonCar} from '../../models/cars/ICommonCar';
 
-import {cities} from '../utils';
-import {parseRadius, getOptionsForReplyKeyboard, transformCarToText} from './utils';
-
-import {config} from '../../config';
+import {companies, cities} from '../utils';
+import {getOptionsForReplyKeyboard, transformCarToText} from './utils';
 
 export class CarsharingMonitorBotUI {
     constructor(private bot: TelegramBot) {}
@@ -18,18 +16,18 @@ export class CarsharingMonitorBotUI {
         text.push('\nЯ бот для поиска и отслеживания каршеринговых автомобилей.')
         text.push('\nЯ умею работать со следующими сервисами:');
 
-        Object.keys(config).sort().forEach((company, index) => {
-            text.push(`${index + 1}) ${config[company].name}`);
+        companies.forEach((company, index) => {
+            text.push(`${index + 1}) ${company}`);
         });
 
-        text.push('\nПонимаю следующие команды:\n');
+        text.push('\nЯ понимаю следующие команды:\n');
         text.push('\/find_nearest – находит ближайший к Вам автомобиль');
         text.push('\/monitor – запускает поиск автомобилей в заданном Вами радиусе');
 
-        text.push('\n<b>Фильтры поиска [скоро]</b>');
-        text.push('\/city – изменение города поиска')
-        text.push('\/services – изменение списка сервисов, среди которых будет производиться поиск');
-        text.push('\/models – изменение списка моделей, среди которых будет производиться поиск');
+        text.push('\n<b>Фильтры поиска</b>');
+        text.push('\/city – изменение города поиска <b>[бета]</b>')
+        text.push('\/services – изменение списка сервисов, среди которых будет производиться поиск <b>[скоро]</b>');
+        text.push('\/models – изменение списка моделей, среди которых будет производиться поиск <b>[скоро]</b>');
 
         this.bot.sendMessage(chatId, text.join('\n'), {parse_mode: 'HTML'});
     }
