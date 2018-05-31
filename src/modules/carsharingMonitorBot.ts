@@ -1,6 +1,7 @@
 import {Observable} from 'rxjs/Rx';
 import TelegramBot, {ConstructorOptions, Location} from 'node-telegram-bot-api';
 
+import {UsersService} from '../services/users/users.service';
 import {GrabberService} from '../services/grabber/grabber.service';
 import {PollingService} from '../services/polling/polling.service';
 
@@ -9,31 +10,28 @@ import {ICommonCar} from '../models/cars/ICommonCar';
 import {CarsharingMonitorBotUI} from './ui/carsharingMonitorBotUI';
 import {parseRadius} from './ui/utils';
 
-import {cities, companies, getCompaniesFromCity} from './utils';
+import {cities, companies} from './utils';
 import {areCarsEqual} from '../utils/carGeolocation';
-
-interface BotUser {
-    state?: string;
-    location?: Location;
-    poll?: PollingService<ICommonCar[]>;
-    grabber?: GrabberService;
-}
 
 export class CarsharingMonitorBot {
     private bot: TelegramBot;
     private ui: CarsharingMonitorBotUI;
+    private usersService: UsersService;
     private grabber: GrabberService;
-    private users: {[id: number]: BotUser} = {};
 
     constructor(token: string, options?: ConstructorOptions) {
         this.bot = new TelegramBot(token, options);
+
         this.ui = new CarsharingMonitorBotUI(this.bot);
-        this.grabber = new GrabberService(getCompaniesFromCity('Москва'));
+        this.usersService = new UsersService();
+        this.grabber = new GrabberService();
     }
 
     start() {
         this.handleCommands();
         this.handleMessages();
+
+        this.debug();
     }
 
     private handleCommands() {
@@ -42,6 +40,7 @@ export class CarsharingMonitorBot {
         this.handleSetCityCommand();
         this.handleSetCompaniesCommand();
         this.handleSetModelsCommand();
+        this.handleResetFiltersCommand();
         this.handleSettingsCommand();
 
         this.handleFindNearestCommand();
@@ -49,6 +48,9 @@ export class CarsharingMonitorBot {
     }
 
     private handleMessages() {
+        this.handleCityMessage();
+        this.handleCompaniesMessage();
+
         this.handleRadiusMessage();
         this.handleStopMonitorMessage();
     }
@@ -61,21 +63,35 @@ export class CarsharingMonitorBot {
 
     private handleSetCityCommand() {
         this.bot.onText(/^\/set_city/, msg => {
-            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_COMMAND') {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_WAIT_NEW_COMMAND') {
                 return;
             }
 
-            this.users[msg.from.id] = {state: 'S_CITY_SET'};
+            user.state = 'S_CITY_SET';
 
             this.ui.requestCity(msg.chat.id);
-
-            this.users[msg.from.id].state = 'S_WAIT_NEW_COMMAND';
         });
     }
 
     private handleSetCompaniesCommand() {
         this.bot.onText(/^\/set_companies/, msg => {
-            this.bot.sendMessage(msg.chat.id, 'Скоро!');
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_WAIT_NEW_COMMAND') {
+                return;
+            }
+
+            if (user.companies.length === 1) {
+                this.bot.sendMessage(msg.chat.id, `В городе ${user.city} доступен только ${user.companies[0]}`);
+
+                return;
+            }
+
+            user.state = 'S_COMPANY_SET';
+            this.ui.requestCompanies(msg.chat.id, user.companies);
+            user.companies = [];
         });
     }
 
@@ -85,71 +101,153 @@ export class CarsharingMonitorBot {
         });
     }
 
+    private handleResetFiltersCommand() {
+        this.bot.onText(/^\/reset_filters/, msg => {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            user.city = 'Москва';
+            this.bot.sendMessage(msg.chat.id, 'Фильтры сброшены!');
+        });
+    }
+
     private handleSettingsCommand() {
         this.bot.onText(/^\/settings/, msg => {
-            this.bot.sendMessage(msg.chat.id, 'Скоро!');
+            const user = this.usersService.getUserById(msg.from.id);
+
+            this.ui.sendFilters(msg.chat.id, user.city, user.companies);
         });
     }
 
     private handleFindNearestCommand() {
         this.bot.onText(/^\/find_nearest/, msg => {
-            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_COMMAND') {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_WAIT_NEW_COMMAND') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
 
                 return;
             }
 
-            this.users[msg.from.id] = {state: 'S_LOCATION_SEND'};
+            user.state = 'S_LOCATION_SEND';
 
             this.ui.requestUserLocation(msg.chat.id)
-                .switchMap(location => this.grabber.getCars(location))
+                .switchMap(location => {
+                    this.grabber.companies = user.companies;
+
+                    return this.grabber.getCars(location);
+                })
                 .subscribe(cars => {
-                    this.ui.sendCar(msg.chat.id, cars[0]);
-                    this.users[msg.from.id].state = 'S_WAIT_NEW_COMMAND';
-                }, err => console.log('Error: ', err));
+                    if (!cars.length) {
+                        this.bot.sendMessage(msg.chat.id, 'К сожалению, не удалось ничего найти');
+                    } else {
+                        this.ui.sendCar(msg.chat.id, cars[0]);
+                    }
+
+                    user.state = 'S_WAIT_NEW_COMMAND';
+                });
         });
     }
 
     private handleMonitorCommand() {
         this.bot.onText(/^\/monitor/, msg => {
-            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_COMMAND') {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_WAIT_NEW_COMMAND') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
 
                 return;
             }
 
-            this.users[msg.from.id] = {state: 'S_LOCATION_SEND'};
+            user.state = 'S_LOCATION_SEND';
 
             this.ui.requestUserLocation(msg.chat.id)
                 .subscribe(location => {
-                    this.users[msg.from.id].state = 'S_RADIUS_ENTER';
-                    this.users[msg.from.id].location = location;
+                    const user = this.usersService.getUserById(msg.from.id);
+
+                    user.state = 'S_RADIUS_ENTER';
+                    user.lastLocation = location;
                     this.ui.requestSearchRadius(msg.chat.id);
                 });
         });
     }
 
+    private handleCityMessage() {
+        this.bot.on('text', msg => {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_CITY_SET') {
+                return;
+            }
+
+            if (!cities.some(city => city === msg.text)) {
+                this.bot.sendMessage(msg.chat.id, 'Не знаю такого города, повторите еще раз!');
+
+                return;
+            }
+
+            user.city = msg.text;
+            this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили в городе ${msg.text}.`);
+            user.state = 'S_WAIT_NEW_COMMAND';
+        });
+    }
+
+    private handleCompaniesMessage() {
+        this.bot.on('text', msg => {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_COMPANY_SET') {
+                return;
+            }
+
+            if (!companies.some(company => company === msg.text) && msg.text !== 'Закончить') {
+                this.bot.sendMessage(msg.chat.id, 'Не знаю такой компании, повторите еще раз!');
+
+                return;
+            }
+
+            if (msg.text === 'Закончить') {
+                if (!user.companies.length) {
+                    this.bot.sendMessage(msg.chat.id, 'Выберите хотя бы одну компанию!');
+    
+                    return;
+                }
+                
+                this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили cледующих компаний: ${user.companies.join(', ')}.`);
+                user.state = 'S_WAIT_NEW_COMMAND';
+
+                return;
+            }
+            
+            user.companies.push(msg.text);
+            this.bot.sendMessage(msg.chat.id, `Вы выбрали компанию "${msg.text}". Выберите следующую или нажмите "Закончить"`);
+        });
+    }
+
     private handleRadiusMessage() {
         this.bot.on('text', msg => {
-            if (!this.users[msg.chat.id] || this.users[msg.chat.id].state !== 'S_RADIUS_ENTER') {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_RADIUS_ENTER') {
                 return;
             }
 
             const radius = parseRadius(msg.text);
 
             if (!radius) {
-                this.bot.sendMessage(msg.chat.id, 'Неверный формат радиуса, повтори еще раз!');
+                this.bot.sendMessage(msg.chat.id, 'Не понимаю формат радиуса, повторите еще раз!');
 
                 return;
             }
 
-            this.monitorCarsInRadius(msg, this.users[msg.from.id].location, radius);
+            this.monitorCarsInRadius(msg, user.lastLocation, radius);
         });
     }
 
     private handleStopMonitorMessage() {
         this.bot.on('text', msg => {
-            if (!this.users[msg.chat.id] || this.users[msg.from.id].state !== 'S_MONITORING') {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_MONITORING') {
                 return;
             }
 
@@ -157,20 +255,24 @@ export class CarsharingMonitorBot {
                 return;
             }
 
-            this.users[msg.from.id].poll.stop();
+            user.poll.stop();
             this.bot.sendMessage(msg.chat.id, 'Ок. Поиск прекращен');
-            this.users[msg.from.id].state = 'S_WAIT_NEW_COMMAND';
+            user.state = 'S_WAIT_NEW_COMMAND';
         }) ;
     }
 
     private monitorCarsInRadius(message: TelegramBot.Message, userLocation: TelegramBot.Location, radius: number) {
+        const user = this.usersService.getUserById(message.chat.id);
+
+        this.grabber.companies = user.companies;
+
         const stream$ = this.grabber.getCars(userLocation, radius);
         const showedCars = [];
 
-        this.users[message.from.id].state = 'S_MONITORING';
+        user.state = 'S_MONITORING';
 
-        this.users[message.from.id].poll = new PollingService<ICommonCar[]>(stream$);
-        this.users[message.from.id].poll.start()
+        user.poll = new PollingService<ICommonCar[]>(stream$);
+        user.poll.start()
             .map(cars => {
                 let foundCar: ICommonCar = null;
 
@@ -191,5 +293,13 @@ export class CarsharingMonitorBot {
             });
 
         this.ui.requestStopMonitoring(message.chat.id, radius);
+    }
+
+    private debug() {
+        this.bot.on('message', msg => {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            console.log(user);
+        });
     }
 }

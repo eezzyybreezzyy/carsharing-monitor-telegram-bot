@@ -11,13 +11,18 @@ import {getCarsInRadius, getNearestCars} from '../../utils/carGeolocation';
 
 export class GrabberService {
     private grabberFactory: IGrabberServiceFactory;
+    private _companies: string[];
 
-    constructor(private carsharings: string[]) {
+    constructor() {
         this.grabberFactory = new GrabberServiceFactory();
     }
 
+    set companies(value: string[]) {
+        this._companies = value;
+    }
+
     getCars(location: IGeolocation, radius?: number): Observable<ICommonCar[]> {
-        const streams$ = this.carsharings.map(name => {
+        const streams$ = this._companies.map(name => {
             return this.grabberFactory.create(name).getCars()
                        .catch(err => Observable.of(err));
         });
@@ -38,7 +43,7 @@ export class GrabberService {
                 return item;
             };
 
-            console.log(`${this.carsharings[index]}: ${item}`);
+            console.log(`${this._companies[index]}: ${item}`);
         });
     }
 }

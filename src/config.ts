@@ -58,6 +58,7 @@ export const config: ICompanyConfig = {
     getmancar: {
         name: 'GetmanCar',
         cities: ['Киев'],
+        // выдавал пустой массив хотя в приложении видно машины
         api: 'http://getmancar.cartrek.online/api/cars'
     },
     delimobil: {
@@ -102,8 +103,14 @@ export const config: ICompanyConfig = {
         name: 'Яндекс.Драйв',
         cities: ['Москва'],
         api: 'https://carsharing.yandex.net/api/drive/v1/cars'
-    }
-
-    // colesa.com
+    },
+    /*
+    colesacom: {
+        name: 'Colesa.com',
+        cities: ['Санкт-Петербург'],
+        api: ''
+    },
+    */
+    
     // carlion, zvezdacar, cars7, mobilecar - оч хз
 };
