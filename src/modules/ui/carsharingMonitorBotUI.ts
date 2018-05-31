@@ -25,9 +25,11 @@ export class CarsharingMonitorBotUI {
         text.push('\/monitor – запускает поиск автомобилей в заданном Вами радиусе');
 
         text.push('\n<b>Фильтры поиска</b>');
-        text.push('\/city – изменение города поиска <b>[бета]</b>')
-        text.push('\/services – изменение списка сервисов, среди которых будет производиться поиск <b>[скоро]</b>');
-        text.push('\/models – изменение списка моделей, среди которых будет производиться поиск <b>[скоро]</b>');
+        text.push('\/set_city – изменение города поиска (сбросит остальные фильтры) <b>[бета]</b>')
+        text.push('\/set_companies – изменение списка компаний, среди которых будет производиться поиск <b>[скоро]</b>');
+        text.push('\/set_models – изменение списка моделей авто, среди которых будет производиться поиск <b>[скоро]</b>');
+        text.push('\/reset_filters – вернуть настройки по умолчанию (г. Москва, без фильтров) <b>[скоро]</b>');
+        text.push('\/settings – вывод установленных фильтров <b>[скоро]</b>');
 
         this.bot.sendMessage(chatId, text.join('\n'), {parse_mode: 'HTML'});
     }
@@ -42,6 +44,14 @@ export class CarsharingMonitorBotUI {
         const options = getOptionsForReplyKeyboard(keyboard, false);
 
         this.bot.sendMessage(chatId, 'Выберите город поиска', options);
+    }
+
+    requestCompany(chatId: number) {
+
+    }
+
+    requestModel(chatId: number) {
+        
     }
 
     requestUserLocation(chatId: number): Observable<TelegramBot.Location> {

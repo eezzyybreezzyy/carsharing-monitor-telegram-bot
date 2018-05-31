@@ -4,10 +4,10 @@ import {removeDuplicates} from '../utils/removeDuplicates';
 
 const companyArray = Object.keys(config).map(company => config[company]);
 
-// для вывода в help и start
+// для вывода в help и start, а также для работы команды set_companies
 export const companies = companyArray.map(company => company.name);
 
-// для работы команды city
+// для работы команды set_city
 export const cities = removeDuplicates(concatArrays(companyArray.map(company => company.cities)));
 
 export function getCompaniesFromCity(city: string): string[] {

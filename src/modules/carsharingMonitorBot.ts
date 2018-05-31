@@ -32,16 +32,25 @@ export class CarsharingMonitorBot {
     }
 
     start() {
+        this.handleCommands();
+        this.handleMessages();
+    }
+
+    private handleCommands() {
         this.handleStartAndHelpCommand();
-        this.handleCityCommand();
-        this.handleServicesCommand();
-        this.handleModelsCommand();
+
+        this.handleSetCityCommand();
+        this.handleSetCompaniesCommand();
+        this.handleSetModelsCommand();
         this.handleSettingsCommand();
+
         this.handleFindNearestCommand();
         this.handleMonitorCommand();
+    }
 
+    private handleMessages() {
         this.handleRadiusMessage();
-        this.handleStopMonitor();
+        this.handleStopMonitorMessage();
     }
 
     private handleStartAndHelpCommand() {
@@ -50,9 +59,9 @@ export class CarsharingMonitorBot {
         });
     }
 
-    private handleCityCommand() {
-        this.bot.onText(/^\/city/, msg => {
-            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_MONITOR') {
+    private handleSetCityCommand() {
+        this.bot.onText(/^\/set_city/, msg => {
+            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_COMMAND') {
                 return;
             }
 
@@ -60,18 +69,18 @@ export class CarsharingMonitorBot {
 
             this.ui.requestCity(msg.chat.id);
 
-            this.users[msg.from.id].state = 'S_WAIT_COMMAND';
+            this.users[msg.from.id].state = 'S_WAIT_NEW_COMMAND';
         });
     }
 
-    private handleServicesCommand() {
-        this.bot.onText(/^\/services/, msg => {
+    private handleSetCompaniesCommand() {
+        this.bot.onText(/^\/set_companies/, msg => {
             this.bot.sendMessage(msg.chat.id, 'Скоро!');
         });
     }
 
-    private handleModelsCommand() {
-        this.bot.onText(/^\/models/, msg => {
+    private handleSetModelsCommand() {
+        this.bot.onText(/^\/set_models/, msg => {
             this.bot.sendMessage(msg.chat.id, 'Скоро!');
         });
     }
@@ -84,7 +93,7 @@ export class CarsharingMonitorBot {
 
     private handleFindNearestCommand() {
         this.bot.onText(/^\/find_nearest/, msg => {
-            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_MONITOR') {
+            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_COMMAND') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
 
                 return;
@@ -96,22 +105,20 @@ export class CarsharingMonitorBot {
                 .switchMap(location => this.grabber.getCars(location))
                 .subscribe(cars => {
                     this.ui.sendCar(msg.chat.id, cars[0]);
-                    this.users[msg.from.id].state = 'S_WAIT_NEW_MONITOR';
+                    this.users[msg.from.id].state = 'S_WAIT_NEW_COMMAND';
                 }, err => console.log('Error: ', err));
         });
     }
 
     private handleMonitorCommand() {
         this.bot.onText(/^\/monitor/, msg => {
-            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_MONITOR') {
+            if (this.users[msg.chat.id] && this.users[msg.chat.id].state !== 'S_WAIT_NEW_COMMAND') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
 
                 return;
             }
 
-            if (!this.users[msg.from.id]) {
-                this.users[msg.from.id] = {state: 'S_LOCATION_SEND'};
-            }
+            this.users[msg.from.id] = {state: 'S_LOCATION_SEND'};
 
             this.ui.requestUserLocation(msg.chat.id)
                 .subscribe(location => {
@@ -140,7 +147,7 @@ export class CarsharingMonitorBot {
         });
     }
 
-    private handleStopMonitor() {
+    private handleStopMonitorMessage() {
         this.bot.on('text', msg => {
             if (!this.users[msg.chat.id] || this.users[msg.from.id].state !== 'S_MONITORING') {
                 return;
@@ -152,7 +159,7 @@ export class CarsharingMonitorBot {
 
             this.users[msg.from.id].poll.stop();
             this.bot.sendMessage(msg.chat.id, 'Ок. Поиск прекращен');
-            this.users[msg.from.id].state = 'S_WAIT_NEW_MONITOR';
+            this.users[msg.from.id].state = 'S_WAIT_NEW_COMMAND';
         }) ;
     }
 
