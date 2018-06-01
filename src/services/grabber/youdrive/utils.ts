@@ -12,7 +12,7 @@ export function toCommonCars(cars: IYouDriveCar[], withoutPartners: boolean = tr
         ({
             company: config.youdrive.name,
             model: car.model,
-            fuel: `${car.fuel.toFixed(0)}%`,
+            fuel: car.fuel && `${car.fuel.toFixed(0)}%`,
             latitude: car.latitude,
             longitude: car.longitude,
             urlSchema: 'youdrivetoday://cars'
