@@ -25,11 +25,11 @@ export class CarsharingMonitorBotUI {
         text.push('\/monitor – запускает поиск автомобилей в заданном Вами радиусе');
 
         text.push('\n<b>Фильтры поиска</b>');
-        text.push('\/set_city – изменение города поиска (сбросит остальные фильтры) <b>[бета]</b>')
-        text.push('\/set_companies – изменение списка компаний, среди которых будет производиться поиск <b>[бета]</b>');
+        text.push('\/set_city – изменение города поиска (сбросит остальные фильтры)')
+        text.push('\/set_companies – изменение списка компаний, среди которых будет производиться поиск (cбросит предыдущий фильтр)');
         text.push('\/set_models – изменение списка моделей авто, среди которых будет производиться поиск <b>[скоро]</b>');
-        text.push('\/reset_filters – вернуть настройки по умолчанию (г. Москва, без фильтров) <b>[бета]</b>');
-        text.push('\/settings – вывод установленных фильтров <b>[бета]</b>');
+        text.push('\/reset_filters – вернуть настройки по умолчанию (г. Москва, без фильтров)');
+        text.push('\/settings – вывод установленных фильтров');
 
         this.bot.sendMessage(chatId, text.join('\n'), {parse_mode: 'HTML'});
     }
@@ -54,7 +54,7 @@ export class CarsharingMonitorBotUI {
             [...cities.slice(6, 9)],
             [...cities.slice(9, cities.length), 'Отменить']
         ];
-        const options = getOptionsForReplyKeyboard(keyboard, false);
+        const options = getOptionsForReplyKeyboard(keyboard, false, false);
 
         this.bot.sendMessage(chatId, 'Выберите город поиска', options);
     }
@@ -94,13 +94,13 @@ export class CarsharingMonitorBotUI {
             ];
         }
 
-        const options = getOptionsForReplyKeyboard(keyboard, false);
+        const options = getOptionsForReplyKeyboard(keyboard, false, false);
 
         this.bot.sendMessage(chatId, 'Выберите компании, среди которых я буду искать.', options);
     }
 
     requestModels(chatId: number) {
-        
+
     }
 
     requestUserLocation(chatId: number): Observable<TelegramBot.Location> {
@@ -144,11 +144,18 @@ export class CarsharingMonitorBotUI {
         this.bot.sendMessage(chatId, `Начинаю поиск автомобилей в радиусе ${radius}км...`, options);
     }
 
-    sendCar(chatId: number, car: ICommonCar) {
+    sendCar(chatId: number, car: ICommonCar, closeKeyboard: boolean = false) {
         const text = transformCarToText(car);
+        const options: TelegramBot.SendMessageOptions = {
+            parse_mode: 'HTML'
+        };
+
+        if (closeKeyboard) {
+            options.reply_markup = {remove_keyboard: true}
+        }
 
         this.bot.sendLocation(chatId, car.latitude, car.longitude, {disable_notification: true})
-            .then(msg => this.bot.sendMessage(chatId, text, {parse_mode: 'HTML'}))
+            .then(msg => this.bot.sendMessage(chatId, text, options))
             .catch(err => console.log('Error: ', err));
     }
 }

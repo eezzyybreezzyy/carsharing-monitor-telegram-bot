@@ -1,6 +1,6 @@
 {
   "name": "carsharing-monitor-telegram-bot",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Телеграм бот для мониторинга свободных каршеринговых автомобилей",
   "main": "dist/index",
   "types": "dist/index",

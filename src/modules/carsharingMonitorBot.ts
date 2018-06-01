@@ -10,7 +10,7 @@ import {ICommonCar} from '../models/cars/ICommonCar';
 import {CarsharingMonitorBotUI} from './ui/carsharingMonitorBotUI';
 import {parseRadius} from './ui/utils';
 
-import {cities, companies} from './utils';
+import {cities, companies, getCompaniesFromCity} from './utils';
 import {areCarsEqual} from '../utils/carGeolocation';
 
 export class CarsharingMonitorBot {
@@ -28,13 +28,13 @@ export class CarsharingMonitorBot {
     }
 
     start() {
-        this.handleCommands();
-        this.handleMessages();
+        this.commandsHandler();
+        this.messagesHandler();
 
         this.debug();
     }
 
-    private handleCommands() {
+    private commandsHandler() {
         this.handleStartAndHelpCommand();
 
         this.handleSetCityCommand();
@@ -47,7 +47,7 @@ export class CarsharingMonitorBot {
         this.handleMonitorCommand();
     }
 
-    private handleMessages() {
+    private messagesHandler() {
         this.handleCityMessage();
         this.handleCompaniesMessage();
 
@@ -84,13 +84,13 @@ export class CarsharingMonitorBot {
             }
 
             if (user.companies.length === 1) {
-                this.bot.sendMessage(msg.chat.id, `В городе ${user.city} доступен только ${user.companies[0]}`);
+                this.bot.sendMessage(msg.chat.id, `В городе ${user.city} доступен только ${user.companies[0]}.`);
 
                 return;
             }
 
             user.state = 'S_COMPANY_SET';
-            this.ui.requestCompanies(msg.chat.id, user.companies);
+            this.ui.requestCompanies(msg.chat.id, getCompaniesFromCity(user.city));
             user.companies = [];
         });
     }
@@ -121,9 +121,16 @@ export class CarsharingMonitorBot {
     private handleFindNearestCommand() {
         this.bot.onText(/^\/find_nearest/, msg => {
             const user = this.usersService.getUserById(msg.from.id);
+            const options = {reply_markup: {remove_keyboard: true}};
+
+            if (user.state === 'S_MONITORING') {
+                this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
+
+                return;
+            }
 
             if (user.state !== 'S_WAIT_NEW_COMMAND') {
-                this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
+                this.bot.sendMessage(msg.chat.id, 'Сначала завершите предыдущую команду!');
 
                 return;
             }
@@ -138,9 +145,9 @@ export class CarsharingMonitorBot {
                 })
                 .subscribe(cars => {
                     if (!cars.length) {
-                        this.bot.sendMessage(msg.chat.id, 'К сожалению, не удалось ничего найти');
+                        this.bot.sendMessage(msg.chat.id, 'К сожалению, не удалось ничего найти :(', options);
                     } else {
-                        this.ui.sendCar(msg.chat.id, cars[0]);
+                        this.ui.sendCar(msg.chat.id, cars[0], true);
                     }
 
                     user.state = 'S_WAIT_NEW_COMMAND';
@@ -152,8 +159,14 @@ export class CarsharingMonitorBot {
         this.bot.onText(/^\/monitor/, msg => {
             const user = this.usersService.getUserById(msg.from.id);
 
-            if (user.state !== 'S_WAIT_NEW_COMMAND') {
+            if (user.state === 'S_MONITORING') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
+
+                return;
+            }
+
+            if (user.state !== 'S_WAIT_NEW_COMMAND') {
+                this.bot.sendMessage(msg.chat.id, 'Сначала завершите предыдущую команду!');
 
                 return;
             }
@@ -174,19 +187,27 @@ export class CarsharingMonitorBot {
     private handleCityMessage() {
         this.bot.on('text', msg => {
             const user = this.usersService.getUserById(msg.from.id);
+            const options = {reply_markup: {remove_keyboard: true}};
 
             if (user.state !== 'S_CITY_SET') {
                 return;
             }
 
-            if (!cities.some(city => city === msg.text)) {
+            if (!cities.some(city => city === msg.text) && msg.text !== 'Отменить') {
                 this.bot.sendMessage(msg.chat.id, 'Не знаю такого города, повторите еще раз!');
 
                 return;
             }
 
+            if (msg.text === 'Отменить') {
+                this.bot.sendMessage(msg.chat.id, `Ок. Команда отменена. По прежнему ищу автомобили в городе ${user.city}.`, options);
+                user.state = 'S_WAIT_NEW_COMMAND';
+
+                return;
+            }
+
             user.city = msg.text;
-            this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили в городе ${msg.text}.`);
+            this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили в городе ${user.city}.`, options);
             user.state = 'S_WAIT_NEW_COMMAND';
         });
     }
@@ -194,6 +215,7 @@ export class CarsharingMonitorBot {
     private handleCompaniesMessage() {
         this.bot.on('text', msg => {
             const user = this.usersService.getUserById(msg.from.id);
+            const options = {reply_markup: {remove_keyboard: true}};
 
             if (user.state !== 'S_COMPANY_SET') {
                 return;
@@ -208,18 +230,18 @@ export class CarsharingMonitorBot {
             if (msg.text === 'Закончить') {
                 if (!user.companies.length) {
                     this.bot.sendMessage(msg.chat.id, 'Выберите хотя бы одну компанию!');
-    
+
                     return;
                 }
-                
-                this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили cледующих компаний: ${user.companies.join(', ')}.`);
+
+                this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили cледующих компаний: ${user.companies.join(', ')}.`, options);
                 user.state = 'S_WAIT_NEW_COMMAND';
 
                 return;
             }
-            
+
             user.companies.push(msg.text);
-            this.bot.sendMessage(msg.chat.id, `Вы выбрали компанию "${msg.text}". Выберите следующую или нажмите "Закончить"`);
+            this.bot.sendMessage(msg.chat.id, `Вы выбрали компанию "${msg.text}". Выберите следующую или нажмите "Закончить".`);
         });
     }
 
@@ -246,6 +268,7 @@ export class CarsharingMonitorBot {
     private handleStopMonitorMessage() {
         this.bot.on('text', msg => {
             const user = this.usersService.getUserById(msg.from.id);
+            const options = {reply_markup: {remove_keyboard: true}};
 
             if (user.state !== 'S_MONITORING') {
                 return;
@@ -256,7 +279,7 @@ export class CarsharingMonitorBot {
             }
 
             user.poll.stop();
-            this.bot.sendMessage(msg.chat.id, 'Ок. Поиск прекращен');
+            this.bot.sendMessage(msg.chat.id, 'Ок. Поиск прекращен', options);
             user.state = 'S_WAIT_NEW_COMMAND';
         }) ;
     }
