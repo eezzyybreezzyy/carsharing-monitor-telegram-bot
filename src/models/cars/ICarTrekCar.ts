@@ -1,4 +1,3 @@
-// много лишних моделей
 export interface ICarTrekCar {
     Id: string;
     Color: string;

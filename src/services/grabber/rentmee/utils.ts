@@ -37,7 +37,7 @@ export function toCommonCars(cars: IRentmeeCar[]): ICommonCar[] {
             company: config.rentmee.name,
             id: car.id,
             model: `${car.brand} ${car.model}`,
-            fuel: parseFloat(car.fuel),
+            fuel: `${parseFloat(car.fuel).toFixed(0)}л`,
             latitude: +car.point.lat,
             longitude: +car.point.lng,
             urlSchema: 'rentmee://cars'

@@ -10,10 +10,10 @@ export function toCommonCars(cars: {[carId: string]: IAnytimeCar}): ICommonCar[]
             id: id,
             model: cars[id].name,
             regNumber: cars[id].vehicle_number.toUpperCase(),
-            fuel: cars[id].fuel,
+            fuel: `${cars[id].fuel.toFixed(0)}%`,
             latitude: cars[id].lat,
             longitude: cars[id].lng,
-            urlSchema: `anytimecar://cars/${id}/`
+            urlSchema: `anytimecar://cars/${cars[id].hash_id}/`
         })
     );
 }

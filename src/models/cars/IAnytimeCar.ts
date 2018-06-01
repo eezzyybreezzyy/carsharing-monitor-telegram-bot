@@ -23,7 +23,7 @@ export interface IAnytimeCar {
     cn: string;
     ct: string;
     photos: {
-        list: IAnytimePhoto[]
+        list: IAnytimePhoto[];
     };
 }
 

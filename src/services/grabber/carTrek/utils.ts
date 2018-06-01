@@ -11,7 +11,7 @@ export function toCommonCars(company: string, cars: ICarTrekCar[]): ICommonCar[]
             id: car.Id,
             model: `${car.Brand} ${car.Model}`,
             regNumber: car.RegNumber,
-            fuel: car.FuelLevel,
+            fuel: car.FuelLevel && `${car.FuelLevel.toFixed(0)}%`,
             latitude: car.Lat,
             longitude: car.Lon,
             urlSchema: `timcar://cars/${car.Id}`

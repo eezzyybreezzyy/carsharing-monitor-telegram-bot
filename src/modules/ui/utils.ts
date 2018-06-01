@@ -39,10 +39,10 @@ export function transformCarToText(car: ICommonCar): string {
     }
 
     if (fuel) {
-        text.push(`<b>Доступно бензина:</b> ~${fuel.toFixed(0)}%`);
+        text.push(`<b>Доступно бензина:</b> ~${fuel}`);
     }
 
-    text.push(`<a href="${urlSchema}">Перейти в приложение</a>`);
+    text.push(`<b>Перейти в приложение:</b> ${urlSchema}`);
 
     return text.join('\n');
 }

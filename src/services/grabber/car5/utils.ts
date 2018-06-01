@@ -10,7 +10,7 @@ export function toCommonCars(cars: ICar5[]): ICommonCar[] {
             id: car.id,
             model: car.name.replace(/<\/?em>/g, ''),
             regNumber: car.gnum.replace(/\s/g, ''),
-            fuel: car.fuel1, // fuel в литрах, fuel1 в процентах
+            fuel: `${car.fuel1}%`,
             latitude: +car.latitude,
             longitude: +car.longitude,
             urlSchema: `car5://cars`

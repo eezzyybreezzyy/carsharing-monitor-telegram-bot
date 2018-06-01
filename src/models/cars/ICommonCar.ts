@@ -5,7 +5,7 @@ export interface ICommonCar extends IGeolocation {
     company: string;
     model: string;
     regNumber?: string;
-    fuel?: number;
+    fuel?: string;
     urlSchema: string;
     distance?: number;
 }
