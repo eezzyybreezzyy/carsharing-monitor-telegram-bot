@@ -1,9 +1,5 @@
 import {Observable, Subject} from 'rxjs/Rx';
-
-export interface IPollingService<T> {
-    start(interval: number): Observable<T>;
-    stop(): void;
-}
+import {IPollingService} from '../../models/polling/IPollingService';
 
 export class PollingService<T> implements IPollingService<T> {
     private stop$: Subject<void>;

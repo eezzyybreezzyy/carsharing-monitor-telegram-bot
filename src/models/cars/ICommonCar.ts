@@ -1,4 +1,4 @@
-import {IGeolocation} from 'models/IGeolocation';
+import {IGeolocation} from '../geolocation/IGeolocation';
 
 export interface ICommonCar extends IGeolocation {
     id?: number | string;

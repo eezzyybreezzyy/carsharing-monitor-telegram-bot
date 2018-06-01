@@ -1,4 +1,4 @@
-import {IGeolocation} from './../IGeolocation';
+import {IGeolocation} from '../geolocation/IGeolocation';
 
 export interface IBelkaCar extends IGeolocation {
     id: number;

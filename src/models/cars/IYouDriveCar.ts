@@ -1,4 +1,4 @@
-import {IGeolocation} from '../IGeolocation';
+import {IGeolocation} from '../geolocation/IGeolocation';
 
 export interface IYouDriveCar extends IGeolocation {
     pin_img: string;

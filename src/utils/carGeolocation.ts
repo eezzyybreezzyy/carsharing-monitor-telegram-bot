@@ -1,5 +1,5 @@
 import {ICommonCar} from '../models/cars/ICommonCar';
-import {IGeolocation} from '../models/IGeolocation';
+import {IGeolocation} from '../models/geolocation/IGeolocation';
 
 const EARTH_RADIUS = 6378.137;
 const DEG_IN_RAD = Math.PI / 180;

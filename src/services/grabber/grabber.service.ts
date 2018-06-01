@@ -4,7 +4,7 @@ import {GrabberServiceFactory} from './grabber.service.factory';
 import {IGrabberService} from '../../models/grabber/IGrabberService';
 import {IGrabberServiceFactory} from '../../models/grabber/IGrabberServiceFactory';
 import {ICommonCar} from '../../models/cars/ICommonCar';
-import {IGeolocation} from '../../models/IGeolocation';
+import {IGeolocation} from '../../models/geolocation/IGeolocation';
 
 import {concatArrays} from '../../utils/concatArrays';
 import {getCarsInRadius, getNearestCars} from '../../utils/carGeolocation';

@@ -1,27 +1,25 @@
-import TelegramBot from 'node-telegram-bot-api';
+import {User} from './user';
 
-import {User, IUser} from './user';
+import {IUsersService} from '../../models/user/IUserService';
+import {IUser} from '../../models/user/IUser';
 
-export interface IUsersService {
-    getUserById(id: number): IUser;
-}
 
 export class UsersService implements IUsersService {
-    private users: IUser[] = [];
+    private users: User[] = [];
 
     constructor() {
         // this.users = loadUsersFromDb();
     }
 
-    getUserById(id: number): IUser {
+    getUserById(id: number): User {
         const user = this.users.find(item => item.id === id);
 
         return user || this.createNewUser(id);
     }
 
-    private createNewUser(id: number): IUser {
+    private createNewUser(id: number): User {
         const newUser = new User(id);
-            
+
         this.users.push(newUser);
 
         return newUser;

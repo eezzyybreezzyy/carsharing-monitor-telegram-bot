@@ -1,19 +1,10 @@
 import {PollingService} from '../polling/polling.service';
 
-import {IGeolocation} from '../../models/IGeolocation';
+import {IUser} from '../../models/user/IUser';
+import {IGeolocation} from '../../models/geolocation/IGeolocation';
 import {ICommonCar} from '../../models/cars/ICommonCar';
 
 import {getCompaniesFromCity} from '../../modules/utils';
-
-export interface IUser {
-    id: number;
-    state: string;
-    city: string;
-    companies: string[];
-    models?: string[];
-    lastLocation?: IGeolocation;
-    poll?: PollingService<ICommonCar[]>;
-}
 
 export class User implements IUser {
     id: number;
