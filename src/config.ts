@@ -103,13 +103,10 @@ export const config: ICompanyConfig = {
         cities: ['Москва'],
         api: 'https://carsharing.yandex.net/api/drive/v1/cars'
     },
-    /*
     colesacom: {
         name: 'Colesa.com',
         cities: ['Санкт-Петербург'],
-        api: ''
+        api: 'https://colesa.com/api/v2/cars?client_id=cs-web&client_version=0.0.1'
     },
-    */
-    
     // carlion, zvezdacar, cars7, mobilecar - оч хз
 };

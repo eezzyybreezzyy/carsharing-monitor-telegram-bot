@@ -72,11 +72,11 @@ export class CarsharingMonitorBotUI {
             ];
         }
 
-        if (searchCompanies.length === 4) {
+        if (searchCompanies.length === 5) {
             keyboard = [
                 [...searchCompanies.slice(0, 2)],
                 [...searchCompanies.slice(2, 4)],
-                ['Закончить']
+                [...searchCompanies.slice(4, 5), 'Закончить']
             ];
         }
 

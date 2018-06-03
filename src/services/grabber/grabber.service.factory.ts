@@ -4,6 +4,7 @@ import {Car4youGrabberService} from './car4you/car4youGrabber.service';
 import {Car5GrabberService} from './car5/car5Grabber.service';
 import {CarendaGrabberService} from './carenda/carendaGrabber.service';
 import {CarTrekGrabberService} from './carTrek/carTrekGrabber.service';
+import {ColesacomGrabberService} from './colesacom/colesacomGrabber.service';
 import {DelimobilGrabberService} from './delimobil/delimobilGrabber.service';
 import {LifCarGrabberService} from './lifCar/lifCarGrabber.service';
 import {RentmeeGrabberService} from './rentmee/rentmeeGrabber.service';
@@ -35,6 +36,8 @@ export class GrabberServiceFactory implements IGrabberServiceFactory {
             case config.drivetime.name:
             case config.getmancar.name:
                 return new CarTrekGrabberService(name.toLowerCase());
+            case config.colesacom.name:
+                return new ColesacomGrabberService();
             case config.delimobil.name:
                 return new DelimobilGrabberService();
             case config.lifcar.name:
