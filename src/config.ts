@@ -58,8 +58,7 @@ export const config: ICompanyConfig = {
     getmancar: {
         name: 'GetmanCar',
         cities: ['Киев'],
-        // выдавал пустой массив хотя в приложении видно машины
-        api: 'http://getmancar.cartrek.online/api/cars'
+        api: 'https://service.getmancar.com.ua/api/cars'
     },
     delimobil: {
         name: 'Делимобиль',
