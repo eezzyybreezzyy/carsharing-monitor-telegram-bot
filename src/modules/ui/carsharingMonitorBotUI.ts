@@ -1,5 +1,5 @@
+import TinyURL from 'tinyurl';
 import TelegramBot from 'node-telegram-bot-api';
-import {Observable, Observer} from 'rxjs/Rx'
 
 import {ICommonCar} from '../../models/cars/ICommonCar';
 
@@ -103,25 +103,13 @@ export class CarsharingMonitorBotUI {
 
     }
 
-    requestUserLocation(chatId: number): Observable<TelegramBot.Location> {
-        return Observable.create((observer: Observer<TelegramBot.Location>) => {
-            const keyboard = [
-                [{text: 'Отправить', request_location: true}]
-            ];
-            const options = getOptionsForReplyKeyboard(keyboard);
+    requestUserLocation(chatId: number) {
+        const keyboard = [
+            [{text: 'Отправить', request_location: true}]
+        ];
+        const options = getOptionsForReplyKeyboard(keyboard);
 
-            this.bot.sendMessage(chatId, 'Отправьте мне вашу геопозицию (по кнопке ниже или отправьте сами)', options)
-                .then(() => {
-                    this.bot.once('location', msg => {
-                        observer.next(msg.location);
-                        observer.complete();
-                    });
-                })
-                .catch(err => {
-                    observer.error(err);
-                    observer.complete();
-                });
-        });
+        this.bot.sendMessage(chatId, 'Отправьте мне вашу геопозицию (по кнопке ниже или отправьте сами)', options)
     }
 
     requestSearchRadius(chatId: number) {
@@ -146,16 +134,29 @@ export class CarsharingMonitorBotUI {
 
     sendCar(chatId: number, car: ICommonCar, closeKeyboard: boolean = false) {
         const text = transformCarToText(car);
-        const options: TelegramBot.SendMessageOptions = {
+        const locationSendOptions: TelegramBot.SendMessageOptions = {
+            disable_notification: true
+        };
+        const carSendOprions: TelegramBot.SendMessageOptions = {
             parse_mode: 'HTML'
         };
 
         if (closeKeyboard) {
-            options.reply_markup = {remove_keyboard: true}
+            locationSendOptions.reply_markup = {remove_keyboard: true};
         }
 
-        this.bot.sendLocation(chatId, car.latitude, car.longitude, {disable_notification: true})
-            .then(msg => this.bot.sendMessage(chatId, text, options))
-            .catch(err => console.log('Error: ', err));
+        TinyURL.shorten(car.urlSchema, shortUrl => {
+            if (shortUrl) {
+                carSendOprions.reply_markup = {
+                    inline_keyboard: [
+                        [{text: 'Перейти в приложение', url: shortUrl}]
+                    ]
+                };
+            }
+
+            this.bot.sendLocation(chatId, car.latitude, car.longitude, locationSendOptions)
+                .then(msg => this.bot.sendMessage(chatId, text, carSendOprions))
+                .catch(err => console.log('Error: ', err));
+        });
     }
 }

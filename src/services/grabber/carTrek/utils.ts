@@ -14,7 +14,7 @@ export function toCommonCars(company: string, cars: ICarTrekCar[]): ICommonCar[]
             fuel: car.FuelLevel && `${car.FuelLevel.toFixed(0)}%`,
             latitude: car.Lat,
             longitude: car.Lon,
-            urlSchema: `timcar://cars/${car.Id}`
+            urlSchema: `${company}://cars/${car.Id}/`
         })
     );
 }

@@ -51,6 +51,8 @@ export class CarsharingMonitorBot {
         this.handleCityMessage();
         this.handleCompaniesMessage();
 
+        this.handleLocationForFindNearestMessage();
+        this.handleLocationForMonitorMessage()
         this.handleRadiusMessage();
         this.handleStopMonitorMessage();
     }
@@ -135,23 +137,9 @@ export class CarsharingMonitorBot {
                 return;
             }
 
-            user.state = 'S_LOCATION_SEND';
+            user.state = 'S_LOCATION_SEND_FOR_FIND_NEAREST';
 
-            this.ui.requestUserLocation(msg.chat.id)
-                .switchMap(location => {
-                    this.grabber.companies = user.companies;
-
-                    return this.grabber.getCars(location);
-                })
-                .subscribe(cars => {
-                    if (!cars.length) {
-                        this.bot.sendMessage(msg.chat.id, 'К сожалению, не удалось ничего найти :(', options);
-                    } else {
-                        this.ui.sendCar(msg.chat.id, cars[0], true);
-                    }
-
-                    user.state = 'S_WAIT_NEW_COMMAND';
-                });
+            this.ui.requestUserLocation(msg.chat.id);
         });
     }
 
@@ -171,16 +159,9 @@ export class CarsharingMonitorBot {
                 return;
             }
 
-            user.state = 'S_LOCATION_SEND';
+            user.state = 'S_LOCATION_SEND_FOR_MONITOR';
 
-            this.ui.requestUserLocation(msg.chat.id)
-                .subscribe(location => {
-                    const user = this.usersService.getUserById(msg.from.id);
-
-                    user.state = 'S_RADIUS_ENTER';
-                    user.lastLocation = location;
-                    this.ui.requestSearchRadius(msg.chat.id);
-                });
+            this.ui.requestUserLocation(msg.chat.id);
         });
     }
 
@@ -242,6 +223,44 @@ export class CarsharingMonitorBot {
 
             user.companies.push(msg.text);
             this.bot.sendMessage(msg.chat.id, `Вы выбрали компанию "${msg.text}". Выберите следующую или нажмите "Закончить".`);
+        });
+    }
+
+    private handleLocationForFindNearestMessage() {
+        this.bot.on('location', msg => {
+            const user = this.usersService.getUserById(msg.from.id);
+            const options = {reply_markup: {remove_keyboard: true}};
+
+            if (user.state !== 'S_LOCATION_SEND_FOR_FIND_NEAREST') {
+                return;
+            }
+
+            this.grabber.companies = user.companies;
+
+            this.grabber.getCars(msg.location)
+                .subscribe(cars => {
+                    if (!cars.length) {
+                        this.bot.sendMessage(msg.chat.id, 'К сожалению, не удалось ничего найти :(', options);
+                    } else {
+                        this.ui.sendCar(msg.chat.id, cars[0], true);
+                    }
+
+                    user.state = 'S_WAIT_NEW_COMMAND';
+                });
+        });
+    }
+
+    private handleLocationForMonitorMessage() {
+        this.bot.on('location', msg => {
+            const user = this.usersService.getUserById(msg.from.id);
+
+            if (user.state !== 'S_LOCATION_SEND_FOR_MONITOR') {
+                return;
+            }
+
+            user.state = 'S_RADIUS_ENTER';
+            user.lastLocation = msg.location;
+            this.ui.requestSearchRadius(msg.chat.id);
         });
     }
 
@@ -322,7 +341,7 @@ export class CarsharingMonitorBot {
         this.bot.on('message', msg => {
             const user = this.usersService.getUserById(msg.from.id);
 
-            console.log(user);
+            console.log(msg.from.username, user);
         });
     }
 }
