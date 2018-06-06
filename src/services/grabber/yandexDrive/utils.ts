@@ -14,7 +14,7 @@ export function toCommonCars(cars: IYandexDriveCar[]): ICommonCar[] {
         ({
             company: config.yandexdrive.name,
             id: car.id,
-            model: normalize(car.model.code.replace('_', ' ')),
+            model: normalize(car.model.code.replace(/_/g, ' ')),
             regNumber: car.number.toUpperCase(),
             fuel: car.telematics_state.fuel_level && `${car.telematics_state.fuel_level.toFixed(0)}%`,
             latitude: car.location.lat,
