@@ -12,6 +12,14 @@ import {parseRadius} from './ui/utils';
 import {cities, companies, getCompaniesFromCity} from './utils';
 import {areCarsEqual} from '../utils/carGeolocation';
 
+const bannedCommands = [
+    '\/set_city',
+    '\/set_companies',
+    '\/set_models',
+    '\/find_nearest',
+    '\/monitor'
+];
+
 export class CarsharingMonitorBot {
     private bot: TelegramBot;
     private ui: CarsharingMonitorBotUI;
@@ -131,7 +139,11 @@ export class CarsharingMonitorBot {
             }
 
             if (user.state !== 'S_WAIT_NEW_COMMAND') {
-                this.bot.sendMessage(msg.chat.id, 'Сначала завершите предыдущую команду!');
+                return;
+            }
+
+            if (!user.companies.length) {
+                this.bot.sendMessage(msg.chat.id, 'Не указаны компании для поиска, выберите их, используя команду \/set_companies');
 
                 return;
             }
@@ -153,7 +165,12 @@ export class CarsharingMonitorBot {
             }
 
             if (user.state !== 'S_WAIT_NEW_COMMAND') {
-                this.bot.sendMessage(msg.chat.id, 'Сначала завершите предыдущую команду!');
+                return;
+            }
+
+
+            if (!user.companies.length) {
+                this.bot.sendMessage(msg.chat.id, 'Не указаны компании для поиска, выберите их, используя команду \/set_companies');
 
                 return;
             }
@@ -173,6 +190,12 @@ export class CarsharingMonitorBot {
                 return;
             }
 
+            if (bannedCommands.some(command => msg.text === command)) {
+                this.bot.sendMessage(msg.chat.id, 'Прежде чем запустить эту команду, завершите выбор города');
+
+                return;
+            }
+
             if (!cities.some(city => city === msg.text) && msg.text !== 'Отменить') {
                 this.bot.sendMessage(msg.chat.id, 'Не знаю такого города, повторите еще раз!');
 
@@ -187,8 +210,8 @@ export class CarsharingMonitorBot {
             }
 
             user.city = msg.text;
-            this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили в городе ${user.city}.`, options);
             user.state = 'S_WAIT_NEW_COMMAND';
+            this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили в городе ${user.city}.`, options);
         });
     }
 
@@ -198,6 +221,12 @@ export class CarsharingMonitorBot {
             const options = {reply_markup: {remove_keyboard: true}};
 
             if (user.state !== 'S_COMPANY_SET') {
+                return;
+            }
+
+            if (bannedCommands.some(command => msg.text === command)) {
+                this.bot.sendMessage(msg.chat.id, 'Прежде чем запустить эту команду, завершите выбор компаний');
+
                 return;
             }
 
@@ -271,6 +300,12 @@ export class CarsharingMonitorBot {
                 return;
             }
 
+            if (bannedCommands.some(command => msg.text === command)) {
+                this.bot.sendMessage(msg.chat.id, 'Прежде чем запустить эту команду, завершите ввод радиуса');
+
+                return;
+            }
+
             const radius = parseRadius(msg.text);
 
             if (!radius) {
@@ -289,6 +324,12 @@ export class CarsharingMonitorBot {
             const options = {reply_markup: {remove_keyboard: true}};
 
             if (user.state !== 'S_MONITORING') {
+                return;
+            }
+
+            if (bannedCommands.some(command => msg.text === command)) {
+                this.bot.sendMessage(msg.chat.id, 'Прежде чем запустить эту команду, завершите поиск');
+
                 return;
             }
 
