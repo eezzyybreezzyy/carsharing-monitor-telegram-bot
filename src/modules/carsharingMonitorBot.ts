@@ -1,4 +1,3 @@
-import {Observable} from 'rxjs/Rx';
 import TelegramBot, {ConstructorOptions, Location} from 'node-telegram-bot-api';
 
 import {UsersService} from '../services/users/users.service';
@@ -280,7 +279,7 @@ export class CarsharingMonitorBot {
                 return;
             }
 
-            this.monitorCarsInRadius(msg, user.lastLocation, radius);
+            this.monitorCarsInRadius(msg, radius);
         });
     }
 
@@ -303,12 +302,12 @@ export class CarsharingMonitorBot {
         }) ;
     }
 
-    private monitorCarsInRadius(message: TelegramBot.Message, userLocation: TelegramBot.Location, radius: number) {
+    private monitorCarsInRadius(message: TelegramBot.Message, radius: number) {
         const user = this.usersService.getUserById(message.chat.id);
 
         this.grabber.companies = user.companies;
 
-        const stream$ = this.grabber.getCars(userLocation, radius);
+        const stream$ = this.grabber.getCars(user.lastLocation, radius);
         const showedCars = [];
 
         user.state = 'S_MONITORING';
@@ -341,7 +340,7 @@ export class CarsharingMonitorBot {
         this.bot.on('message', msg => {
             const user = this.usersService.getUserById(msg.from.id);
 
-            console.log(msg.from.username, user);
+            console.log(msg.from.username, user.state, user.city, user.companies);
         });
     }
 }
