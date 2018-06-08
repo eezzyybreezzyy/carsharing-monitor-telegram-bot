@@ -89,20 +89,21 @@ export class CarsharingMonitorBot {
     private handleSetCompaniesCommand() {
         this.bot.onText(/^\/set_companies/, msg => {
             const user = this.usersService.getUserById(msg.from.id);
+            const availableCompanies = getCompaniesFromCity(user.city);
 
             if (user.state !== 'S_WAIT_NEW_COMMAND') {
                 return;
             }
 
-            if (user.companies.length === 1) {
-                this.bot.sendMessage(msg.chat.id, `В городе ${user.city} доступен только ${user.companies[0]}.`);
+            if (availableCompanies.length === 1) {
+                this.bot.sendMessage(msg.chat.id, `В городе ${user.city} доступен только ${availableCompanies[0]}.`);
 
                 return;
             }
 
             user.state = 'S_COMPANY_SET';
-            this.ui.requestCompanies(msg.chat.id, getCompaniesFromCity(user.city));
             user.companies = [];
+            this.ui.requestCompanies(msg.chat.id, availableCompanies);
         });
     }
 
