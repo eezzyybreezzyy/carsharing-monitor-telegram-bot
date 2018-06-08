@@ -235,12 +235,6 @@ export class CarsharingMonitorBot {
                 return;
             }
 
-            if (!companies.some(company => company === msg.text) && msg.text !== 'Закончить') {
-                this.bot.sendMessage(msg.chat.id, 'Не знаю такой компании, повторите еще раз!');
-
-                return;
-            }
-
             if (msg.text === 'Закончить') {
                 if (!user.companies.length) {
                     this.bot.sendMessage(msg.chat.id, 'Выберите хотя бы одну компанию!');
@@ -250,6 +244,18 @@ export class CarsharingMonitorBot {
 
                 this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили cледующих компаний: ${user.companies.join(', ')}.`, options);
                 user.state = 'S_WAIT_NEW_COMMAND';
+
+                return;
+            }
+
+            if (user.companies.some(company => company === msg.text)) {
+                this.bot.sendMessage(msg.chat.id, 'Вы уже выбирали данную компанию!');
+
+                return;
+            }
+
+            if (!companies.some(company => company === msg.text)) {
+                this.bot.sendMessage(msg.chat.id, 'Не знаю такой компании, повторите еще раз!');
 
                 return;
             }
