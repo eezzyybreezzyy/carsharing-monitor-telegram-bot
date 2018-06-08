@@ -1,3 +1,5 @@
+import moment from 'moment';
+import {Observable} from 'rxjs/Rx';
 import TelegramBot, {ConstructorOptions, Location} from 'node-telegram-bot-api';
 
 import {UsersService} from '../services/users/users.service';
@@ -155,8 +157,11 @@ export class CarsharingMonitorBot {
     }
 
     private handleMonitorCommand() {
-        this.bot.onText(/^\/monitor/, msg => {
+        this.bot.onText(/^\/monitor\s?(\d\d:\d\d)?/, (msg, match) => {
             const user = this.usersService.getUserById(msg.from.id);
+
+            const now = moment().format('HH:mm');
+            const time = match[1] || null;
 
             if (user.state === 'S_MONITORING') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
@@ -167,7 +172,6 @@ export class CarsharingMonitorBot {
             if (user.state !== 'S_WAIT_NEW_COMMAND') {
                 return;
             }
-
 
             if (!user.companies.length) {
                 this.bot.sendMessage(msg.chat.id, 'Не указаны компании для поиска, выберите их, используя команду \/set_companies');

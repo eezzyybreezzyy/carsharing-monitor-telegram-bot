@@ -89,7 +89,7 @@ export class CarsharingMonitorBotUI {
 
         if (searchCompanies.length === 2) {
             keyboard = [
-                [...searchCompanies.slice(0, 1)],
+                [...searchCompanies.slice(0, 2)],
                 ['Закончить']
             ];
         }
