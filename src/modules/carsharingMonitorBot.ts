@@ -1,3 +1,4 @@
+import {Observable} from 'rxjs/Rx';
 import TelegramBot, {ConstructorOptions, Location} from 'node-telegram-bot-api';
 
 import {UsersService} from '../services/users/users.service';
@@ -196,15 +197,15 @@ export class CarsharingMonitorBot {
                 return;
             }
 
-            if (!cities.some(city => city === msg.text) && msg.text !== 'Отменить') {
-                this.bot.sendMessage(msg.chat.id, 'Не знаю такого города, повторите еще раз!');
+            if (msg.text === 'Отменить') {
+                this.bot.sendMessage(msg.chat.id, `Ок. Команда отменена. По прежнему ищу автомобили в городе ${user.city}.`, options);
+                user.state = 'S_WAIT_NEW_COMMAND';
 
                 return;
             }
 
-            if (msg.text === 'Отменить') {
-                this.bot.sendMessage(msg.chat.id, `Ок. Команда отменена. По прежнему ищу автомобили в городе ${user.city}.`, options);
-                user.state = 'S_WAIT_NEW_COMMAND';
+            if (!cities.some(city => city === msg.text)) {
+                this.bot.sendMessage(msg.chat.id, 'Не знаю такого города, повторите еще раз!');
 
                 return;
             }
@@ -230,12 +231,6 @@ export class CarsharingMonitorBot {
                 return;
             }
 
-            if (!companies.some(company => company === msg.text) && msg.text !== 'Закончить') {
-                this.bot.sendMessage(msg.chat.id, 'Не знаю такой компании, повторите еще раз!');
-
-                return;
-            }
-
             if (msg.text === 'Закончить') {
                 if (!user.companies.length) {
                     this.bot.sendMessage(msg.chat.id, 'Выберите хотя бы одну компанию!');
@@ -249,8 +244,14 @@ export class CarsharingMonitorBot {
                 return;
             }
 
+            if (!companies.some(company => company === msg.text)) {
+                this.bot.sendMessage(msg.chat.id, 'Не знаю такой компании, повторите еще раз!');
+
+                return;
+            }
+
             user.companies.push(msg.text);
-            this.bot.sendMessage(msg.chat.id, `Вы выбрали компанию "${msg.text}". Выберите следующую или нажмите "Закончить".`);
+            this.bot.sendMessage(msg.chat.id, `Вы выбрали компанию «${msg.text}». Выберите следующую или нажмите «Закончить».`);
         });
     }
 
@@ -349,32 +350,67 @@ export class CarsharingMonitorBot {
         this.grabber.companies = user.companies;
 
         const stream$ = this.grabber.getCars(user.lastLocation, radius);
-        const showedCars = [];
+        const showed: {car: ICommonCar; locationMsgId?: number; carMsgId?: number}[] = [];
+        let foundCar: ICommonCar = null;
 
         user.state = 'S_MONITORING';
 
         user.poll = new PollingService<ICommonCar[]>(stream$);
         user.poll.start()
-            .map(cars => {
-                let foundCar: ICommonCar = null;
-
-                cars.some(car => {
-                    if (!showedCars.some(showedCar => areCarsEqual(showedCar, car))) {
-                        foundCar = car;
-
-                        return true;
-                    }
-                });
-
-                return foundCar;
-            })
+            .do(cars => this.handleBookedCars(message.chat.id, cars, showed))
+            .map(cars => this.getUnshowedCar(cars, showed))
             .filter(car => !!car)
-            .subscribe(car => {
-                showedCars.push(car);
-                this.ui.sendCar(message.chat.id, car);
+            .switchMap(car => {
+                foundCar = car;
+
+                return Observable.fromPromise(this.ui.sendCar(message.chat.id, car));
+            })
+            .subscribe(({locationMsgId, carMsgId}) => {
+                showed.push({car: foundCar, locationMsgId, carMsgId});
+            }, err => {
+                console.log(err);
+                showed.push({car: foundCar});
             });
 
         this.ui.requestStopMonitoring(message.chat.id, radius);
+    }
+
+    private handleBookedCars(chatId: number, cars: ICommonCar[], showed: {car: ICommonCar; locationMsgId?: number; carMsgId?: number}[]) {
+        const bookedCars: ICommonCar[] = [];
+
+        showed.forEach(item => {
+            if (!cars.some(car => areCarsEqual(car, item.car))) {
+                bookedCars.push(item.car);
+            }
+        });
+
+        bookedCars.forEach(bookedCar => {
+            const index = showed.findIndex(item => areCarsEqual(item.car, bookedCar));
+
+            if (!showed[index].locationMsgId || !showed[index].carMsgId) {
+                console.log('failure: ', bookedCar);
+                return;
+            }
+
+            console.log('success: ', bookedCar);
+
+            this.ui.deleteCar(chatId, showed[index].car, showed[index].locationMsgId, showed[index].carMsgId);
+            showed.splice(index, 1);
+        });
+    }
+
+    private getUnshowedCar(cars: ICommonCar[], showed: {car: ICommonCar; locationMsgId?: number; carMsgId?: number}[]): ICommonCar {
+        let foundCar: ICommonCar = null;
+
+        cars.some(car => {
+            if (!showed.some(item => areCarsEqual(item.car, car))) {
+                foundCar = car;
+
+                return true;
+            }
+        });
+
+        return foundCar;
     }
 
     private debug() {

@@ -132,31 +132,52 @@ export class CarsharingMonitorBotUI {
         this.bot.sendMessage(chatId, `Начинаю поиск автомобилей в радиусе ${radius}км...`, options);
     }
 
-    sendCar(chatId: number, car: ICommonCar, closeKeyboard: boolean = false) {
-        const text = transformCarToText(car);
-        const locationSendOptions: TelegramBot.SendMessageOptions = {
-            disable_notification: true
-        };
-        const carSendOprions: TelegramBot.SendMessageOptions = {
-            parse_mode: 'HTML'
-        };
+    sendCar(chatId: number, car: ICommonCar, closeKeyboard: boolean = false): Promise<{locationMsgId: number, carMsgId: number}> {
+        return new Promise((resolve, reject) => {
+            const text = transformCarToText(car);
+            const locationSendOptions: TelegramBot.SendMessageOptions = {
+                disable_notification: true
+            };
+            const carSendOprions: TelegramBot.SendMessageOptions = {
+                parse_mode: 'HTML'
+            };
 
-        if (closeKeyboard) {
-            locationSendOptions.reply_markup = {remove_keyboard: true};
-        }
-
-        TinyURL.shorten(car.urlSchema, shortUrl => {
-            if (shortUrl) {
-                carSendOprions.reply_markup = {
-                    inline_keyboard: [
-                        [{text: 'Перейти в приложение', url: shortUrl}]
-                    ]
-                };
+            if (closeKeyboard) {
+                locationSendOptions.reply_markup = {remove_keyboard: true};
             }
 
-            this.bot.sendLocation(chatId, car.latitude, car.longitude, locationSendOptions)
-                .then(msg => this.bot.sendMessage(chatId, text, carSendOprions))
-                .catch(err => console.log('Error: ', err));
+            TinyURL.shorten(car.urlSchema, shortUrl => {
+                if (shortUrl) {
+                    carSendOprions.reply_markup = {
+                        inline_keyboard: [
+                            [{text: 'Перейти в приложение', url: shortUrl}]
+                        ]
+                    };
+                }
+
+                let locationMsgId: number;
+
+                this.bot.sendLocation(chatId, car.latitude, car.longitude, locationSendOptions)
+                    .then((locationMessage: TelegramBot.Message) => {
+                        locationMsgId = locationMessage.message_id;
+
+                        return this.bot.sendMessage(chatId, text, carSendOprions);
+                    })
+                    .then((carMsg: TelegramBot.Message) => resolve({locationMsgId, carMsgId: carMsg.message_id}))
+                    .catch(err => reject(err));
+            });
         });
+    }
+
+    deleteCar(chatId: number, car: ICommonCar, locationMsgId: number, carMsgId: number) {
+        const text = transformCarToText(car, true);
+        const options = {chat_id: chatId, message_id: carMsgId, parse_mode: 'HTML'};
+
+        this.bot.deleteMessage(chatId, locationMsgId.toString());
+        this.bot.editMessageText(text, options);
+
+        setTimeout(() => {
+            this.bot.deleteMessage(chatId, carMsgId.toString());
+        }, 60000);
     }
 }

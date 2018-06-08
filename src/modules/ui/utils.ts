@@ -23,8 +23,8 @@ export function getOptionsForReplyKeyboard(keyboard: KeyboardButton[][], oneTime
     };
 }
 
-export function transformCarToText(car: ICommonCar): string {
-    const {company, model, regNumber, fuel, urlSchema, distance} = car;
+export function transformCarToText(car: ICommonCar, forDelete: boolean = false): string {
+    const {company, model, regNumber, fuel, distance} = car;
     const distanceWithUnits = distance < 1
                        ? (distance * 1000).toFixed(0) + 'м'
                        : distance.toFixed(2) + 'км';
@@ -32,14 +32,21 @@ export function transformCarToText(car: ICommonCar): string {
 
     text.push(`<b>${company}</b>\n`);
     text.push(`<b>Авто:</b> ${model}`);
-    text.push(`<b>Расстояние:</b> ~${distanceWithUnits}`);
 
-    if (regNumber) {
+    if (!forDelete) {
+        text.push(`<b>Расстояние:</b> ~${distanceWithUnits}`);
+    }
+
+    if (regNumber && !forDelete) {
         text.push(`<b>Госномер:</b> ${regNumber}`);
     }
 
-    if (fuel) {
+    if (fuel && !forDelete) {
         text.push(`<b>Доступно бензина:</b> ~${fuel}`);
+    }
+
+    if (forDelete) {
+        text.push('\nЗабронирован :(');
     }
 
     return text.join('\n');
