@@ -1,6 +1,6 @@
 {
   "name": "carsharing-monitor-telegram-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Телеграм бот для мониторинга свободных каршеринговых автомобилей",
   "main": "dist/index",
   "types": "dist/index",
@@ -17,6 +17,7 @@
   "author": "daniil.nazarov@phystech.edu",
   "license": "ISC",
   "devDependencies": {
+    "@types/moment": "^2.13.0",
     "@types/node": "^10.1.2",
     "@types/node-telegram-bot-api": "^0.28.3",
     "@types/request": "^2.47.0",
@@ -25,6 +26,7 @@
     "ts-node": "^6.0.3"
   },
   "dependencies": {
+    "moment": "^2.22.2",
     "node-telegram-bot-api": "^0.30.0",
     "request": "^2.87.0",
     "rxjs": "5.5.1",

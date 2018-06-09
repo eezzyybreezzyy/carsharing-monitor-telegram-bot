@@ -1,3 +1,4 @@
+import moment from 'moment';
 import {Observable} from 'rxjs/Rx';
 import TelegramBot, {ConstructorOptions, Location} from 'node-telegram-bot-api';
 
@@ -88,20 +89,21 @@ export class CarsharingMonitorBot {
     private handleSetCompaniesCommand() {
         this.bot.onText(/^\/set_companies/, msg => {
             const user = this.usersService.getUserById(msg.from.id);
+            const availableCompanies = getCompaniesFromCity(user.city);
 
             if (user.state !== 'S_WAIT_NEW_COMMAND') {
                 return;
             }
 
-            if (user.companies.length === 1) {
-                this.bot.sendMessage(msg.chat.id, `В городе ${user.city} доступен только ${user.companies[0]}.`);
+            if (availableCompanies.length === 1) {
+                this.bot.sendMessage(msg.chat.id, `В городе ${user.city} доступен только ${availableCompanies[0]}.`);
 
                 return;
             }
 
             user.state = 'S_COMPANY_SET';
-            this.ui.requestCompanies(msg.chat.id, getCompaniesFromCity(user.city));
             user.companies = [];
+            this.ui.requestCompanies(msg.chat.id, availableCompanies);
         });
     }
 
@@ -156,8 +158,11 @@ export class CarsharingMonitorBot {
     }
 
     private handleMonitorCommand() {
-        this.bot.onText(/^\/monitor/, msg => {
+        this.bot.onText(/^\/monitor\s?(\d\d:\d\d)?/, (msg, match) => {
             const user = this.usersService.getUserById(msg.from.id);
+
+            const now = moment().format('HH:mm');
+            const time = match[1] || null;
 
             if (user.state === 'S_MONITORING') {
                 this.bot.sendMessage(msg.chat.id, 'Нельзя запускать несколько поисков одновременно! Завершите поиск и повторите снова.');
@@ -168,7 +173,6 @@ export class CarsharingMonitorBot {
             if (user.state !== 'S_WAIT_NEW_COMMAND') {
                 return;
             }
-
 
             if (!user.companies.length) {
                 this.bot.sendMessage(msg.chat.id, 'Не указаны компании для поиска, выберите их, используя команду \/set_companies');
@@ -240,6 +244,12 @@ export class CarsharingMonitorBot {
 
                 this.bot.sendMessage(msg.chat.id, `Ок. Теперь буду искать автомобили cледующих компаний: ${user.companies.join(', ')}.`, options);
                 user.state = 'S_WAIT_NEW_COMMAND';
+
+                return;
+            }
+
+            if (user.companies.some(company => company === msg.text)) {
+                this.bot.sendMessage(msg.chat.id, 'Вы уже выбирали данную компанию!');
 
                 return;
             }
