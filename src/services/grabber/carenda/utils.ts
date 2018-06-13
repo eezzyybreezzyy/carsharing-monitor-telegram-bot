@@ -10,7 +10,7 @@ export function toCommonCars(cars: ICarendaCarExtended[]): ICommonCar[] {
             id: car.id,
             model: car.model.name_full,
             regNumber: car.number,
-            fuel: car.fuel && `${parseFloat(car.fuel).toFixed(0)}л`,
+            fuel: car.fuel && `${parseFloat(car.fuel).toFixed(1)}л`,
             latitude: car.lat,
             longitude: car.lon,
             urlSchema: `carenda://cars`

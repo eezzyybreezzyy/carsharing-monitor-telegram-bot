@@ -10,7 +10,7 @@ export function toCommonCars(cars: IColesacomCar[]): ICommonCar[] {
             id: car.id,
             model: car.name,
             regNumber: car.number,
-            fuel: car.fuel_level_percent && `${car.fuel_level_percent.toFixed(0)}%`,
+            fuel: car.fuel_level_percent && `${car.fuel_level_percent.toFixed(1)}%`,
             latitude: car.latitude,
             longitude: car.longitude,
             urlSchema: `colesacom://cars`

@@ -19,8 +19,11 @@ function comparator(carA: ICommonCar, carB: ICommonCar): number {
 }
 
 export function areCarsEqual(carA: ICommonCar, carB: ICommonCar): boolean {
-    return carA.latitude === carB.latitude
-        && carA.longitude === carB.longitude;
+    return carA.company === carB.company
+        && carA.model === carB.model
+        && carA.regNumber === carB.regNumber
+        && carA.fuel === carB.fuel
+        && getDistance(carA, carB) < 0.01;
 }
 
 export function getNearestCars(cars: ICommonCar[], location: IGeolocation): ICommonCar[] {

@@ -37,7 +37,7 @@ export function transformCarToText(car: ICommonCar, forDelete: boolean = false):
         text.push(`<b>Расстояние:</b> ~${distanceWithUnits}`);
     }
 
-    if (regNumber && !forDelete) {
+    if (regNumber) {
         text.push(`<b>Госномер:</b> ${regNumber}`);
     }
 
@@ -46,7 +46,7 @@ export function transformCarToText(car: ICommonCar, forDelete: boolean = false):
     }
 
     if (forDelete) {
-        text.push('\nЗабронирован :(');
+        text.push('<b>Состояние:</b> Забронирован :(');
     }
 
     return text.join('\n');

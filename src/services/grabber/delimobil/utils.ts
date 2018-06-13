@@ -10,7 +10,7 @@ export function toCommonCars(cars: IDelimobilCar[]): ICommonCar[] {
             id: car.id,
             model: car.model,
             regNumber: car.reg_number,
-            fuel: car.fuel && `${parseFloat(car.fuel).toFixed(0)}%`,
+            fuel: car.fuel && `${parseFloat(car.fuel).toFixed(1)}%`,
             latitude: car.geometry.coordinates[1],
             longitude: car.geometry.coordinates[0],
             urlSchema: `delimobil://cars`

@@ -368,17 +368,17 @@ export class CarsharingMonitorBot {
         user.poll = new PollingService<ICommonCar[]>(stream$);
         user.poll.start()
             .do(cars => this.handleBookedCars(message.chat.id, cars, showed))
-            .map(cars => this.getUnshowedCar(cars, showed))
-            .filter(car => !!car)
-            .switchMap(car => {
-                foundCar = car;
+            .map(cars => {
+                foundCar = cars.find(car => !showed.some(item => areCarsEqual(item.car, car)));
 
-                return Observable.fromPromise(this.ui.sendCar(message.chat.id, car));
+                return foundCar;
             })
+            .filter(car => !!car)
+            .switchMap(car => Observable.fromPromise(this.ui.sendCar(message.chat.id, car)))
             .subscribe(({locationMsgId, carMsgId}) => {
                 showed.push({car: foundCar, locationMsgId, carMsgId});
             }, err => {
-                console.log(err);
+                console.log('Error: ', err);
                 showed.push({car: foundCar});
             });
 
@@ -386,41 +386,21 @@ export class CarsharingMonitorBot {
     }
 
     private handleBookedCars(chatId: number, cars: ICommonCar[], showed: {car: ICommonCar; locationMsgId?: number; carMsgId?: number}[]) {
-        const bookedCars: ICommonCar[] = [];
-
-        showed.forEach(item => {
-            if (!cars.some(car => areCarsEqual(car, item.car))) {
-                bookedCars.push(item.car);
-            }
-        });
-
-        bookedCars.forEach(bookedCar => {
-            const index = showed.findIndex(item => areCarsEqual(item.car, bookedCar));
-
-            if (!showed[index].locationMsgId || !showed[index].carMsgId) {
-                console.log('failure: ', bookedCar);
+        showed.forEach(({car, locationMsgId, carMsgId}, index, array) => {
+            if (cars.some(item => areCarsEqual(item, car))) {
                 return;
             }
 
-            console.log('success: ', bookedCar);
-
-            this.ui.deleteCar(chatId, showed[index].car, showed[index].locationMsgId, showed[index].carMsgId);
-            showed.splice(index, 1);
-        });
-    }
-
-    private getUnshowedCar(cars: ICommonCar[], showed: {car: ICommonCar; locationMsgId?: number; carMsgId?: number}[]): ICommonCar {
-        let foundCar: ICommonCar = null;
-
-        cars.some(car => {
-            if (!showed.some(item => areCarsEqual(item.car, car))) {
-                foundCar = car;
-
-                return true;
+            if (!locationMsgId || !carMsgId) {
+                console.log('failure: ', car);
+                return;
             }
-        });
 
-        return foundCar;
+            console.log('success: ', car);
+
+            this.ui.deleteCar(chatId, car, locationMsgId, carMsgId);
+            array.splice(index, 1);
+        });
     }
 
     private debug() {
